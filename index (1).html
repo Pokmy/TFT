@@ -1,0 +1,3052 @@
+<!doctype html>
+<html lang="fr" class="verrou">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js 'sha256-L0k+rb3rdbTtoClDyOG8yjhQevzMf66+p4ZJafUEzAE='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="Tableau des flux de trésorerie IAS 7 2027 d’Atlas Distribution SA : situation du cash, KPI par famille, synchronisation avec le fichier Excel.">
+<title>Atlas · TFT 2027</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000'/%3E%3Cpath d='M12 4l7 8-7 8-7-8z' fill='none' stroke='%23E0AE28' stroke-width='1.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap">
+<style>
+/* =====================================================================
+   DESIGN SYSTEM · écrit une seule fois, réutilisé partout
+   Style : glassmorphism noir « liquid UI » · mode sombre uniquement
+   ===================================================================== */
+:root {
+  /* Couleurs de la palette (60 % fond, 30 % principale, 10 % accent) */
+  --c-fond: #000000;
+  --c-carte: #050505;
+  --c-carte-verre: rgba(5, 5, 5, 0.72);
+  --c-texte: #E0AE28;
+  --c-texte-doux: rgba(224, 174, 40, 0.78);
+  --c-principale: #FFFFFF;
+  --c-principale-douce: rgba(255, 255, 255, 0.74);
+  --c-accent: #E0AE28;
+  --c-accent-fonce: #B8891A;
+  --c-bord: rgba(255, 255, 255, 0.10);
+  --c-bord-fort: rgba(255, 255, 255, 0.18);
+  --c-reflet: rgba(255, 255, 255, 0.06);
+  --c-voile: rgba(0, 0, 0, 0.66);
+  /* Couleurs de signal (toujours avec une icône et un mot) */
+  --c-vert: #4CC38A;
+  --c-orange: #F0913A;
+  --c-rouge: #F2555A;
+  --c-bleu: #5AA9F5;
+  --c-gris: #9A9A9A;
+  /* Couleurs des flowcharts */
+  --c-entree: #E0AE28;
+  --c-sortie: #A3263B;
+  --c-sortie-texte: #E06A7E;
+  --c-total: #FFFFFF;
+  /* Polices */
+  --f-chiffres: 'Cinzel', 'Times New Roman', serif;
+  --f-texte: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Échelle de texte fixe */
+  --t-titre: 40px;
+  --t-sous-titre: 24px;
+  --t-cle: clamp(56px, 7vw, 104px);
+  --t-texte: 16px;
+  --t-legende: 13px;
+  /* Espacements · échelle de 8 px */
+  --e-1: 8px;
+  --e-2: 16px;
+  --e-3: 24px;
+  --e-4: 32px;
+  --e-5: 40px;
+  --e-6: 48px;
+  --e-8: 64px;
+  /* Rayons */
+  --r-1: 8px;
+  --r-2: 16px;
+  --r-3: 24px;
+  --r-rond: 999px;
+  /* Ombres */
+  --o-1: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.6);
+  --o-2: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 24px 64px rgba(0, 0, 0, 0.8);
+  --o-eclat: 0 0 0 1px rgba(224, 174, 40, 0.65), 0 0 40px rgba(224, 174, 40, 0.35);
+  /* Menu et durées */
+  --rail: 76px;
+  --menu-ouvert: 320px;
+  --d-rapide: 200ms;
+  --d-moyen: 320ms;
+  --flou: blur(18px) saturate(140%);
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--c-fond); -webkit-text-size-adjust: 100%; }
+html.verrou body { visibility: hidden; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--c-fond);
+  color: var(--c-texte);
+  font-family: var(--f-texte);
+  font-weight: 300;
+  font-size: var(--t-texte);
+  line-height: 1.55;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--f-chiffres); font-weight: 400; color: var(--c-principale); margin: 0; letter-spacing: 0.02em; line-height: 1.2; }
+h1 { font-size: var(--t-titre); }
+h2 { font-size: var(--t-sous-titre); }
+h3 { font-size: var(--t-texte); font-family: var(--f-texte); font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-texte-doux); }
+p { margin: 0; }
+a { color: var(--c-principale); }
+button { font: inherit; color: inherit; }
+.legende { font-size: var(--t-legende); color: var(--c-texte-doux); }
+.chiffre { font-family: var(--f-chiffres); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; color: var(--c-principale); white-space: nowrap; }
+.unite { font-family: var(--f-chiffres); color: var(--c-accent); }
+.visuellement-cache { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+h1[tabindex="-1"]:focus { outline: none; box-shadow: none; }
+:focus-visible { outline: 2px solid var(--c-principale); outline-offset: 3px; border-radius: 6px; box-shadow: 0 0 0 6px rgba(224, 174, 40, 0.28); }
+.lien-evitement { position: fixed; top: -100px; left: var(--e-2); z-index: 100; background: var(--c-accent); color: #000; padding: var(--e-1) var(--e-2); border-radius: var(--r-1); text-decoration: none; }
+.lien-evitement:focus { top: var(--e-2); }
+
+/* ---------- Fond noir liquid UI : reflets lents + particules ---------- */
+.fond-reflets {
+  position: fixed; inset: -20%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(40% 32% at 22% 18%, rgba(255, 255, 255, 0.055), transparent 70%),
+    radial-gradient(36% 28% at 78% 30%, rgba(255, 255, 255, 0.035), transparent 72%),
+    radial-gradient(48% 36% at 55% 82%, rgba(255, 255, 255, 0.04), transparent 70%),
+    radial-gradient(120% 90% at 50% 50%, #050505 0%, #000000 70%);
+  animation: glisser-reflets 26s ease-in-out infinite alternate;
+}
+@keyframes glisser-reflets {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(4%, -3%, 0) scale(1.06); }
+  100% { transform: translate3d(-3%, 4%, 0) scale(1.02); }
+}
+#fond-particules { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+/* ---------- Verre noir laqué (cartes et panneaux) ---------- */
+.verre {
+  position: relative;
+  background: var(--c-carte-verre);
+  border: 1px solid var(--c-bord);
+  border-radius: var(--r-3);
+  box-shadow: var(--o-1);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  overflow: hidden;
+}
+.verre::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 46%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 100%);
+  pointer-events: none; border-radius: inherit;
+}
+
+/* ---------- Boutons premium ---------- */
+.bouton {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--e-1);
+  min-height: 44px; padding: 0 var(--e-3);
+  border-radius: var(--r-rond); border: 1px solid var(--c-bord-fort);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  color: var(--c-principale); font-family: var(--f-texte); font-weight: 400; font-size: 15px;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform var(--d-rapide) ease, border-color var(--d-rapide) ease, background var(--d-rapide) ease;
+}
+.bouton:hover { border-color: rgba(224, 174, 40, 0.7); transform: translateY(-1px); }
+.bouton svg { width: 18px; height: 18px; flex: none; }
+.bouton-principal {
+  background: linear-gradient(180deg, #F0C24A 0%, var(--c-accent) 45%, var(--c-accent-fonce) 100%);
+  color: #000; border-color: rgba(255, 255, 255, 0.35); font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 24px rgba(224, 174, 40, 0.22);
+}
+.bouton-principal:hover { border-color: #fff; }
+.bouton-discret { background: transparent; border-color: transparent; color: var(--c-texte); padding: 0 var(--e-2); }
+.bouton-discret:hover { border-color: var(--c-bord-fort); }
+.bouton-petit { min-height: 36px; padding: 0 var(--e-2); font-size: var(--t-legende); }
+
+/* ---------- Pastilles de statut (couleur + icône + mot) ---------- */
+.pastille {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px 3px 8px; border-radius: var(--r-rond);
+  font-size: var(--t-legende); font-weight: 400; line-height: 1.4; white-space: nowrap;
+  border: 1px solid currentColor; background: rgba(0, 0, 0, 0.4);
+}
+.pastille svg { width: 14px; height: 14px; }
+.pastille.vert { color: var(--c-vert); }
+.pastille.orange { color: var(--c-orange); }
+.pastille.rouge { color: var(--c-rouge); }
+.pastille.neutre { color: var(--c-gris); }
+.point { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--c-gris); }
+.point.vert { background: var(--c-vert); }
+.point.orange { background: var(--c-orange); }
+.point.rouge { background: var(--c-rouge); }
+.point.bleu { background: var(--c-bleu); }
+.point.neutre { background: var(--c-gris); }
+.point.pulse { animation: pulser 2.4s ease-in-out infinite; }
+@keyframes pulser { 0%, 100% { box-shadow: 0 0 0 0 rgba(76, 195, 138, 0.55); } 50% { box-shadow: 0 0 0 6px rgba(76, 195, 138, 0); } }
+
+/* ---------- Menu latéral : rail d'icônes qui se déplie au survol ---------- */
+.menu {
+  position: fixed; z-index: 30; left: 0; top: 0; bottom: 0; width: var(--rail);
+  display: flex; flex-direction: column; gap: var(--e-2);
+  padding: var(--e-2) 0; overflow: hidden;
+  background: rgba(3, 3, 3, 0.78); border-right: 1px solid var(--c-bord);
+  -webkit-backdrop-filter: var(--flou); backdrop-filter: var(--flou);
+  transition: width var(--d-moyen) cubic-bezier(.2, .7, .2, 1), box-shadow var(--d-moyen) ease;
+}
+.menu:hover, .menu:focus-within { width: var(--menu-ouvert); box-shadow: 24px 0 64px rgba(0, 0, 0, 0.8); overflow-y: auto; }
+.menu-marque { display: flex; align-items: center; gap: var(--e-2); padding: 0 var(--e-3); min-height: 48px; color: var(--c-principale); }
+.menu-marque svg { width: 28px; height: 28px; flex: none; color: var(--c-accent); }
+.menu-texte { opacity: 0; transition: opacity var(--d-rapide) ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu:hover .menu-texte, .menu:focus-within .menu-texte { opacity: 1; }
+.menu-marque .menu-texte { font-family: var(--f-chiffres); font-size: 15px; line-height: 1.3; }
+.menu-marque small { display: block; font-family: var(--f-texte); font-size: 12px; color: var(--c-texte-doux); }
+.nav-liste, .nav-familles, .nav-kpis { list-style: none; margin: 0; padding: 0; }
+.nav-lien {
+  display: flex; align-items: center; gap: var(--e-2); min-height: 44px;
+  margin: 2px var(--e-1); padding: 0 var(--e-2); border-radius: var(--r-2);
+  color: var(--c-principale-douce); text-decoration: none; white-space: nowrap;
+  transition: background var(--d-rapide) ease, color var(--d-rapide) ease;
+}
+.nav-lien svg { width: 22px; height: 22px; flex: none; margin-left: 5px; }
+.nav-lien:hover { background: rgba(255, 255, 255, 0.05); color: var(--c-principale); }
+.nav-lien[aria-current="page"] { color: var(--c-principale); background: rgba(224, 174, 40, 0.10); box-shadow: inset 2px 0 0 var(--c-accent); }
+.nav-familles { display: none; margin: 0 var(--e-1) var(--e-1) 52px; }
+.menu:hover .nav-familles, .menu:focus-within .nav-familles { display: block; }
+.nav-famille-ligne { display: flex; align-items: center; gap: 4px; }
+.nav-famille-ligne .nav-lien { flex: 1; min-width: 0; margin: 1px 0; padding: 0 var(--e-1); min-height: 38px; font-size: 14px; gap: var(--e-1); }
+.nav-sous-texte { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.nav-compte { font-size: 12px; color: var(--c-texte-doux); }
+.deplier {
+  width: 32px; height: 32px; flex: none; display: inline-grid; place-items: center;
+  border: 1px solid transparent; border-radius: var(--r-1); background: transparent; color: var(--c-texte); cursor: pointer;
+}
+.deplier:hover { border-color: var(--c-bord-fort); }
+.deplier svg { width: 14px; height: 14px; transition: transform var(--d-rapide) ease; }
+.deplier[aria-expanded="true"] svg { transform: rotate(90deg); }
+.nav-kpis { margin-left: var(--e-2); border-left: 1px solid var(--c-bord); padding-left: 6px; }
+.nav-kpis .nav-lien { min-height: 34px; font-size: 13px; padding: 0 var(--e-1); gap: var(--e-1); }
+.nav-mot { font-size: 11px; color: var(--c-texte-doux); }
+
+/* ---------- Panneau de synchronisation (sous les liens du menu) ---------- */
+.panneau-sync { margin: auto var(--e-1) 0; padding: var(--e-2); border-radius: var(--r-2); border: 1px solid transparent; transition: border-color var(--d-rapide), background var(--d-rapide); }
+.menu:hover .panneau-sync, .menu:focus-within .panneau-sync { border-color: var(--c-bord); background: rgba(255, 255, 255, 0.025); }
+.sync-icone { display: none; position: relative; width: 44px; height: 44px; margin: 0 auto; place-items: center; color: var(--c-principale-douce); border-radius: var(--r-2); }
+.sync-icone svg { width: 22px; height: 22px; }
+.sync-icone .point { position: absolute; right: 8px; top: 8px; border: 2px solid #000; width: 12px; height: 12px; }
+.sync-complet { min-width: 270px; display: grid; gap: 12px; }
+.menu:not(:hover):not(:focus-within) .sync-complet { display: none; }
+.menu:not(:hover):not(:focus-within) .sync-icone { display: grid; }
+.menu:not(:hover):not(:focus-within) .panneau-sync { padding: 0; }
+.sync-entete { display: flex; align-items: center; justify-content: space-between; gap: var(--e-1); color: var(--c-principale); }
+.sync-etat { display: flex; align-items: flex-start; gap: var(--e-1); font-size: 14px; color: var(--c-principale-douce); }
+.sync-etat .point { margin-top: 7px; }
+.sync-infos { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 12px; }
+.sync-infos dt { color: var(--c-texte-doux); }
+.sync-infos dd { margin: 0; color: var(--c-principale-douce); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sync-boutons { display: grid; gap: var(--e-1); }
+.sync-boutons .bouton { width: 100%; }
+.sync-aide { font-size: 12px; color: var(--c-texte-doux); }
+.sync-raison { font-size: 12px; color: var(--c-rouge); }
+
+/* Interrupteur « Synchronisation » : piste 44 × 24, rond qui glisse en 200 ms */
+.interrupteur {
+  position: relative; width: 44px; height: 24px; flex: none; padding: 0; cursor: pointer;
+  border-radius: var(--r-rond); border: 1px solid var(--c-bord-fort);
+  background: #3A3A3A; transition: background var(--d-rapide) ease, border-color var(--d-rapide) ease;
+}
+.interrupteur::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
+  background: #D6D6D6; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); transition: transform var(--d-rapide) ease, background var(--d-rapide) ease;
+}
+.interrupteur[aria-checked="true"] { background: var(--c-principale); border-color: var(--c-principale); }
+.interrupteur[aria-checked="true"]::after { transform: translateX(20px); background: #000; }
+
+/* ---------- Bande mobile (synchronisation compacte) et onglets du bas ---------- */
+.bande-mobile, .onglets-mobile { display: none; }
+
+/* ---------- Contenu ---------- */
+main { position: relative; z-index: 1; margin-left: var(--rail); padding: var(--e-5) var(--e-6) var(--e-8); max-width: 1480px; outline: none; }
+.ariane ol { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 var(--e-3); padding: 0; font-size: var(--t-legende); color: var(--c-texte-doux); }
+.ariane li { display: inline-flex; align-items: center; gap: 6px; }
+.ariane li + li::before { content: "→"; color: var(--c-texte-doux); }
+.ariane a { color: var(--c-texte); text-decoration: none; }
+.ariane a:hover { text-decoration: underline; }
+.ariane [aria-current] { color: var(--c-principale); }
+.vue { display: grid; gap: var(--e-5); }
+.entete-vue { display: grid; gap: var(--e-2); }
+.surtitre { font-size: var(--t-legende); letter-spacing: 0.16em; text-transform: uppercase; color: var(--c-texte-doux); }
+.message-principal { font-size: 18px; color: var(--c-texte); max-width: 980px; }
+.section { display: grid; gap: var(--e-3); }
+.section-entete { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--e-2); }
+.grille-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-3); }
+.grille-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-3); }
+.grille-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-3); }
+.reponses { display: flex; flex-wrap: wrap; gap: var(--e-1); }
+.reponse { display: inline-flex; align-items: center; gap: var(--e-1); padding: var(--e-1) var(--e-2); border-radius: var(--r-rond); border: 1px solid var(--c-bord); background: rgba(0, 0, 0, 0.5); font-size: 14px; color: var(--c-principale-douce); }
+
+/* ---------- Cartes de flux ---------- */
+.carte-flux { padding: var(--e-3); display: grid; gap: 6px; transition: transform var(--d-rapide) ease, box-shadow var(--d-rapide) ease; }
+.carte-flux:hover { transform: translateY(-3px); box-shadow: var(--o-2); }
+.carte-flux div .chiffre { font-size: 40px; line-height: 1.1; }
+.carte-flux .legende .chiffre { font-size: 15px; }
+.carte-flux .unite { font-size: 16px; margin-left: 6px; }
+.carte-flux .titre-flux { display: flex; align-items: center; justify-content: space-between; gap: var(--e-1); font-size: 14px; color: var(--c-texte-doux); }
+.carte-flux svg { width: 20px; height: 20px; color: var(--c-accent); }
+
+/* ---------- Cartes KPI très grand format ---------- */
+.carte-kpi { padding: var(--e-4); display: grid; gap: var(--e-2); align-content: start; text-decoration: none; color: inherit; transition: transform var(--d-rapide) ease, box-shadow var(--d-rapide) ease, border-color var(--d-rapide) ease; }
+a.carte-kpi:hover { transform: translateY(-4px); box-shadow: var(--o-2); border-color: var(--c-bord-fort); }
+.carte-kpi-haut { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--e-2); }
+.carte-kpi-nom { font-size: 15px; color: var(--c-principale-douce); display: flex; align-items: center; gap: 6px; }
+.carte-kpi-code { font-family: var(--f-chiffres); color: var(--c-accent); font-size: 13px; letter-spacing: 0.1em; }
+.valeur-cle { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; min-width: 0; }
+.valeur-cle .chiffre { font-size: var(--t-cle); line-height: 1; letter-spacing: -0.01em; }
+.valeur-cle .unite { font-size: var(--t-sous-titre); }
+.carte-kpi-bas { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-1) var(--e-3); }
+.comparaison { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-3); font-size: 15px; color: var(--c-texte); }
+.comparaison .chiffre { font-size: 17px; }
+.comparaison .variation { color: var(--c-accent); font-family: var(--f-chiffres); white-space: nowrap; }
+.sparkline { display: block; width: 160px; height: 36px; }
+.eclat { animation: eclat 2s ease-out 1; }
+@keyframes eclat { 0% { box-shadow: var(--o-eclat); border-color: rgba(224, 174, 40, 0.9); } 100% { box-shadow: var(--o-1); } }
+
+/* Infobulle (formule) */
+.info { position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1px solid var(--c-bord-fort); background: transparent; color: var(--c-texte); cursor: help; flex: none; }
+.info svg { width: 14px; height: 14px; }
+.info::after {
+  content: attr(data-infobulle); position: absolute; z-index: 20; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%) translateY(4px);
+  width: max-content; max-width: 280px; padding: 10px 12px; border-radius: var(--r-1);
+  background: #0B0B0B; border: 1px solid var(--c-bord-fort); color: var(--c-principale); font-size: 13px; line-height: 1.4; text-align: left; white-space: normal;
+  opacity: 0; pointer-events: none; transition: opacity var(--d-rapide) ease, transform var(--d-rapide) ease; box-shadow: var(--o-2);
+}
+.info:hover::after, .info:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+.info.a-droite::after { left: auto; right: -8px; transform: translateY(4px); }
+.info.a-droite:hover::after, .info.a-droite:focus-visible::after { transform: translateY(0); }
+
+/* ---------- Graphiques ---------- */
+.carte-graphique { padding: var(--e-3); display: grid; gap: var(--e-2); }
+.carte-graphique figcaption { display: grid; gap: 4px; }
+.graphique { width: 100%; height: 380px; }
+.graphique.haut { height: 460px; }
+.graphique.jauge { height: 230px; }
+.jauges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-2); }
+.jauge-legende { text-align: center; font-size: var(--t-legende); color: var(--c-texte-doux); margin-top: -18px; }
+.source { font-size: 12px; color: var(--c-texte-doux); }
+
+/* ---------- Recommandations ---------- */
+.recos { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-2); }
+.reco { padding: var(--e-3); display: grid; grid-template-columns: auto 1fr; gap: var(--e-2); align-items: start; }
+.reco-num { font-family: var(--f-chiffres); font-size: 32px; line-height: 1; color: var(--c-accent); }
+.reco p { color: var(--c-principale-douce); }
+
+/* ---------- Tableau premium du TFT ---------- */
+.carte-tableau { padding: var(--e-3); display: grid; gap: var(--e-2); }
+.tableau-defile { overflow-x: auto; }
+table.tft { width: 100%; border-collapse: collapse; font-size: 15px; }
+table.tft caption { text-align: left; caption-side: top; padding-bottom: var(--e-1); font-size: var(--t-legende); color: var(--c-texte-doux); }
+table.tft th, table.tft td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); vertical-align: baseline; }
+table.tft thead th { font-weight: 400; font-size: var(--t-legende); color: var(--c-texte-doux); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; border-bottom-color: var(--c-bord-fort); }
+table.tft th.montant, table.tft td.montant { text-align: right; white-space: nowrap; }
+table.tft td.montant { font-family: var(--f-chiffres); font-variant-numeric: tabular-nums; color: var(--c-principale); }
+table.tft td.code { font-family: var(--f-chiffres); color: var(--c-accent); font-size: 13px; width: 56px; }
+table.tft tr.titre td { padding-top: var(--e-3); font-size: var(--t-legende); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c-texte); border-bottom-color: transparent; }
+table.tft tr.sous-total td { color: var(--c-principale); }
+table.tft tr.total td { font-weight: 600; color: var(--c-principale); background: rgba(255, 255, 255, 0.035); border-bottom-color: var(--c-bord-fort); }
+table.tft tr.total td.montant { font-weight: 700; }
+table.tft td.niveau-1 { padding-left: 32px; }
+table.tft tbody tr:hover td { background: rgba(255, 255, 255, 0.025); }
+
+/* ---------- Familles ---------- */
+.carte-famille { padding: var(--e-3); display: grid; gap: var(--e-2); text-decoration: none; color: inherit; transition: transform var(--d-rapide) ease, box-shadow var(--d-rapide) ease; }
+.carte-famille:hover { transform: translateY(-4px); box-shadow: var(--o-2); }
+.carte-famille-haut { display: flex; align-items: center; justify-content: space-between; gap: var(--e-2); }
+.carte-famille-haut svg { width: 28px; height: 28px; color: var(--c-accent); }
+.liste-kpi-famille { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; color: var(--c-principale-douce); }
+.liste-kpi-famille li { display: flex; align-items: center; justify-content: space-between; gap: var(--e-1); }
+.liste-kpi-famille .chiffre { font-size: 15px; }
+
+/* ---------- Page KPI ---------- */
+.dictionnaire { padding: var(--e-4); display: grid; gap: var(--e-3); }
+.dictionnaire dl { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: var(--e-2) var(--e-3); margin: 0; }
+.dictionnaire dt { color: var(--c-texte-doux); font-size: 14px; }
+.dictionnaire dd { margin: 0; color: var(--c-principale); }
+.seuils { display: flex; flex-wrap: wrap; gap: var(--e-1); }
+
+/* ---------- États : chargement, vide, erreur, disjoncteur ---------- */
+.squelette { border-radius: var(--r-3); background: linear-gradient(100deg, rgba(255, 255, 255, 0.03) 30%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 70%); background-size: 300% 100%; animation: miroiter 1.6s linear infinite; border: 1px solid var(--c-bord); }
+@keyframes miroiter { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.etat { padding: var(--e-6) var(--e-5); display: grid; gap: var(--e-3); justify-items: start; max-width: 860px; }
+.etat svg.grande-icone { width: 48px; height: 48px; color: var(--c-accent); }
+.etat .actions { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.etat ul { margin: 0; padding-left: 20px; color: var(--c-principale-douce); display: grid; gap: 6px; }
+.zone-depot-locale { width: 100%; padding: var(--e-4); border: 1.5px dashed rgba(224, 174, 40, 0.55); border-radius: var(--r-2); text-align: center; color: var(--c-texte); background: rgba(224, 174, 40, 0.03); }
+.zone-depot { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(0, 0, 0, 0.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.zone-depot[hidden] { display: none; }
+.zone-depot div { padding: var(--e-6); border: 2px dashed var(--c-accent); border-radius: var(--r-3); font-family: var(--f-chiffres); font-size: var(--t-sous-titre); color: var(--c-principale); }
+.alerte { padding: var(--e-2) var(--e-3); display: grid; grid-template-columns: auto 1fr auto; gap: var(--e-2); align-items: start; border-color: rgba(240, 145, 58, 0.55); }
+.alerte svg { width: 22px; height: 22px; color: var(--c-orange); }
+.alerte.rouge { border-color: rgba(242, 85, 90, 0.6); }
+.alerte.rouge svg { color: var(--c-rouge); }
+.alerte ul { margin: 6px 0 0; padding-left: 18px; color: var(--c-principale-douce); font-size: 14px; }
+.alertes { display: grid; gap: var(--e-2); margin-bottom: var(--e-3); }
+.alertes:empty { display: none; }
+.disjoncteur { border-color: rgba(242, 85, 90, 0.6); }
+.disjoncteur h1 { color: var(--c-rouge); }
+.masque { font-family: var(--f-chiffres); color: var(--c-gris); letter-spacing: 0.2em; }
+
+/* ---------- Toasts ---------- */
+.toasts { position: fixed; z-index: 80; right: var(--e-3); bottom: var(--e-3); display: grid; gap: var(--e-1); max-width: min(420px, calc(100vw - 32px)); }
+.toast { padding: 12px var(--e-2); display: flex; align-items: center; gap: var(--e-1); font-size: 14px; color: var(--c-principale); border-radius: var(--r-2); animation: monter-toast 320ms ease-out; }
+.toast svg { width: 18px; height: 18px; color: var(--c-accent); flex: none; }
+@keyframes monter-toast { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Volet mobile ---------- */
+.volet { position: fixed; z-index: 70; inset: auto 0 0 0; max-height: 82vh; overflow-y: auto; padding: var(--e-3) var(--e-2) calc(var(--e-3) + env(safe-area-inset-bottom)); border-radius: var(--r-3) var(--r-3) 0 0; border-bottom: none; }
+.volet[hidden] { display: none; }
+.volet-entete { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--e-2); }
+.volet .nav-familles { display: block; margin: 0; }
+.volet .nav-famille-ligne .nav-lien { font-size: 16px; min-height: 44px; }
+.volet .nav-kpis .nav-lien { font-size: 14px; min-height: 40px; }
+.voile { position: fixed; inset: 0; z-index: 65; background: var(--c-voile); }
+.voile[hidden] { display: none; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  main { padding: var(--e-4) var(--e-4) var(--e-8); }
+  .grille-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grille-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  .menu { display: none; }
+  .fond-reflets { animation: none; }
+  main { margin-left: 0; padding: calc(64px + var(--e-2)) var(--e-2) calc(88px + env(safe-area-inset-bottom)); }
+  .bande-mobile {
+    display: flex; position: fixed; z-index: 40; top: 0; left: 0; right: 0; min-height: 56px;
+    align-items: center; gap: var(--e-1); padding: 8px var(--e-2); padding-top: max(8px, env(safe-area-inset-top));
+    background: rgba(3, 3, 3, 0.86); border-bottom: 1px solid var(--c-bord); -webkit-backdrop-filter: var(--flou); backdrop-filter: var(--flou);
+  }
+  .bande-etat { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--e-1); font-size: 13px; color: var(--c-principale-douce); }
+  .bande-etat span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .onglets-mobile {
+    display: grid; grid-template-columns: 1fr 1fr; position: fixed; z-index: 40; left: 0; right: 0; bottom: 0;
+    padding: 6px var(--e-1) calc(6px + env(safe-area-inset-bottom)); background: rgba(3, 3, 3, 0.9);
+    border-top: 1px solid var(--c-bord); -webkit-backdrop-filter: var(--flou); backdrop-filter: var(--flou);
+  }
+  .onglet-mobile { display: grid; justify-items: center; gap: 2px; min-height: 56px; padding: 6px; border: 0; border-radius: var(--r-2); background: transparent; color: var(--c-principale-douce); font-size: 12px; text-decoration: none; cursor: pointer; }
+  .onglet-mobile svg { width: 22px; height: 22px; }
+  .onglet-mobile[aria-current="page"] { color: var(--c-accent); background: rgba(224, 174, 40, 0.08); }
+  .toasts { left: var(--e-2); right: var(--e-2); bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .etat { padding: var(--e-4) var(--e-3); }
+  .dictionnaire dl { grid-template-columns: 1fr; gap: 4px; }
+  .dictionnaire dd { margin-bottom: var(--e-1); }
+  .jauges { grid-template-columns: 1fr; }
+  .carte-kpi { padding: var(--e-3); }
+  .graphique { height: 340px; }
+  .graphique.haut { height: 480px; }
+  table.tft { font-size: 14px; }
+  table.tft th, table.tft td { padding: 8px 6px; }
+  table.tft td.niveau-1 { padding-left: 16px; }
+}
+@media (max-width: 640px) {
+  .grille-2, .grille-3, .grille-4 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (hover: none) {
+  .info::after { display: none; }
+}
+
+/* ---------- Réduire les animations ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .fond-reflets { animation: none !important; }
+  .eclat { box-shadow: var(--o-eclat); }
+}
+</style>
+</head>
+<body>
+<a class="lien-evitement" href="#contenu">Aller au contenu</a>
+<div class="fond-reflets" aria-hidden="true"></div>
+<canvas id="fond-particules" aria-hidden="true"></canvas>
+
+<aside id="menu" class="menu" aria-label="Menu principal">
+  <div class="menu-marque">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M12 2l9 10-9 10-9-10z"/><path d="M12 6.5l5 5.5-5 5.5-5-5.5z"/></svg>
+    <span class="menu-texte">Atlas Distribution SA<small>TFT IAS 7 · Casablanca · k MAD</small></span>
+  </div>
+  <nav id="menu-nav" aria-label="Écrans et KPI"></nav>
+  <div id="panneau-sync" class="panneau-sync" role="region" aria-label="Synchronisation du fichier Excel"></div>
+</aside>
+
+<header id="bande-mobile" class="bande-mobile" aria-label="Synchronisation du fichier Excel"></header>
+
+<main id="contenu" tabindex="-1">
+  <nav id="ariane" class="ariane" aria-label="Fil d’Ariane"></nav>
+  <div id="alertes" class="alertes"></div>
+  <div id="vue" class="vue" aria-live="off"></div>
+</main>
+
+<nav id="onglets-mobile" class="onglets-mobile" aria-label="Écrans"></nav>
+<div id="voile" class="voile" hidden></div>
+<div id="volet" class="volet verre" role="dialog" aria-modal="true" aria-labelledby="volet-titre" hidden></div>
+<div id="zone-depot" class="zone-depot" hidden><div>Déposez votre fichier Excel</div></div>
+<input type="file" id="entree-fichier" accept=".xlsx,.xlsm,.xls,.csv" hidden>
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+<div id="annonce" class="visuellement-cache" aria-live="polite"></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+
+'use strict';
+(function () {
+
+  /* =====================================================================
+     SÉCURITÉ (1/3) · protection contre l'affichage dans une fausse page
+     Si l'application est ouverte dans une iframe d'un autre site, son
+     contenu est retiré et reste masqué.
+     ===================================================================== */
+  var dansUnCadre = true;
+  try { dansUnCadre = window.top !== window.self; } catch (e) { dansUnCadre = true; }
+  if (dansUnCadre) {
+    document.body.replaceChildren();
+    var avis = document.createElement('p');
+    avis.textContent = 'Contenu masqué : cette application ne peut pas s’afficher à l’intérieur d’une autre page.';
+    avis.style.cssText = 'color:#E0AE28;font-family:sans-serif;padding:24px;';
+    document.body.appendChild(avis);
+    document.documentElement.classList.remove('verrou');
+    return;
+  }
+  document.documentElement.classList.remove('verrou');
+
+  /* =====================================================================
+     CONFIGURATION
+     ===================================================================== */
+
+  /* Le contrat de format : toute la lecture et toute la validation passent
+     par cet objet. Onglets, noms définis, codes de ligne, types et
+     synonymes acceptés. */
+  var FORMAT_ATTENDU = Object.freeze({
+    version: '1.0',
+    annees: ['2027', '2026'],
+    onglets: {
+      LISEZMOI: { nom: 'LISEZ-MOI', synonymes: ['LISEZ MOI', 'LISEZMOI', 'LIRE MOI', 'README', 'MODE D EMPLOI'], obligatoire: false },
+      INPUT: { nom: 'INPUT', synonymes: ['DONNEES', 'ENTREES', 'SAISIE'], obligatoire: false },
+      RIFRS: { nom: 'RETRAITEMENTS-IFRS', synonymes: ['RETRAITEMENTS IFRS', 'RETRAITEMENT IFRS', 'BILANS IFRS'], obligatoire: false },
+      RTFT: { nom: 'RETRAITEMENTS-TFT', synonymes: ['RETRAITEMENTS TFT', 'RETRAITEMENT TFT'], obligatoire: false },
+      TFT: { nom: 'TFT', synonymes: ['TABLEAU DES FLUX', 'TABLEAU DES FLUX DE TRESORERIE', 'FLUX DE TRESORERIE'], obligatoire: true },
+      DETTES: { nom: 'DETTES-FINANCEMENT', synonymes: ['DETTES FINANCEMENT', 'DETTES DE FINANCEMENT'], obligatoire: false },
+      PONT: { nom: 'PONT-CGNC', synonymes: ['PONT CGNC', 'PASSAGE CGNC'], obligatoire: false },
+      KPI: { nom: 'KPI', synonymes: ['KPIS', 'INDICATEURS'], obligatoire: true },
+      DASHBOARD: { nom: 'DASHBOARD', synonymes: ['TABLEAU DE BORD'], obligatoire: false },
+      CONTROLES: { nom: 'CONTROLES', synonymes: ['CONTROLE', 'VERIFICATIONS', 'AUDIT'], obligatoire: true },
+      JOURNAL: { nom: 'JOURNAL', synonymes: ['LOG', 'HISTORIQUE'], obligatoire: false }
+    },
+    /* Noms définis obligatoires (type « nombre » ou « texte ») */
+    nomsDefinis: [
+      { nom: 'TFT_OT_2027', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_OT_2026', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_IT_2027', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_IT_2026', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_FT_2027', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_FT_2026', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_V_2027', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_V_2026', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_T0_2027', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_T0_2026', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_T1_2027', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'TFT_T1_2026', onglet: 'TFT', type: 'nombre', synonymes: [] },
+      { nom: 'KPI_CONV_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_CONV_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_OT_RN_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_OT_RN_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_FCF_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_FCF_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_FCF_LOY_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_FCF_LOY_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_CAPEX_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_CAPEX_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DSO_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DSO_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DIO_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DIO_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DPO_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DPO_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_CCC_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_CCC_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DN_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DN_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_LEV_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_LEV_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_LEV_X16_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_LEV_X16_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DSCR_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DSCR_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DIV_2027', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'KPI_DIV_2026', onglet: 'KPI', type: 'kpi', synonymes: [] },
+      { nom: 'PARAM_TVA', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_JOURS', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_PLAFOND', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_CIBLE_CONV', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_CIBLE_DSCR', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_CIBLE_DIV', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_CIBLE_LEV', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_CIBLE_CCC', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_CIBLE_CAPEX', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_MAX_CONV', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_MAX_LEV', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'PARAM_MAX_DSCR', onglet: 'KPI', type: 'nombre', synonymes: [] },
+      { nom: 'STATUT_GLOBAL', onglet: 'CONTROLES', type: 'texte', synonymes: ['STATUT'] }
+    ],
+    /* Codes de ligne de l'onglet TFT (colonne B), dans l'ordre du TFT */
+    tft: {
+      onglet: 'TFT',
+      codes: ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O8', 'O9', 'O10', 'O11', 'O12', 'OS', 'O13', 'OT',
+        'I1', 'I2', 'I3', 'IT', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'FT', 'V', 'T0', 'T1'],
+      totaux: ['OT', 'IT', 'FT', 'V', 'T0', 'T1'],
+      sousTotaux: ['OS'],
+      colonnes: {
+        code: ['ligne', 'code', 'n°', 'no', 'numero'],
+        libelle: ['libelle', 'intitule', 'poste', 'rubrique'],
+        a2027: ['2027', 'exercice 2027', 'montant 2027', 'n'],
+        a2026: ['2026', 'exercice 2026', 'montant 2026', 'n-1']
+      }
+    },
+    /* Codes de ligne de l'onglet KPI (colonne B) et nom défini associé */
+    kpi: {
+      onglet: 'KPI',
+      codes: ['K01', 'K02', 'K03', 'K04', 'K05', 'K06', 'K07', 'K08', 'K09', 'K10', 'K11', 'K12', 'K13', 'K14'],
+      prefixes: { K01: 'KPI_CONV', K02: 'KPI_OT_RN', K03: 'KPI_FCF', K04: 'KPI_FCF_LOY', K05: 'KPI_CAPEX', K06: 'KPI_DSO', K07: 'KPI_DIO',
+        K08: 'KPI_DPO', K09: 'KPI_CCC', K10: 'KPI_DN', K11: 'KPI_LEV', K12: 'KPI_LEV_X16', K13: 'KPI_DSCR', K14: 'KPI_DIV' },
+      colonnes: {
+        code: ['n°', 'no', 'code', 'numero'],
+        nom: ['kpi', 'indicateur', 'libelle'],
+        a2027: ['2027', 'valeur 2027'],
+        a2026: ['2026', 'valeur 2026'],
+        variation: ['variation', 'ecart', 'evolution'],
+        feu2027: ['feu 2027', 'statut 2027'],
+        feu2026: ['feu 2026', 'statut 2026'],
+        nomDefini: ['nom defini · unite', 'nom defini', 'unite']
+      },
+      dictionnaire: {
+        definition: ['definition'],
+        unite: ['unite'],
+        vert: ['vert', 'seuil vert'],
+        ambre: ['ambre', 'orange', 'seuil ambre', 'seuil orange'],
+        rouge: ['rouge', 'seuil rouge'],
+        pourquoi: ['pourquoi il compte', 'pourquoi', 'interet']
+      },
+      seuils: { sens: ['sens'], vert: ['seuil vert'], ambre: ['seuil ambre', 'seuil orange'] },
+      /* Sections 4 et 5 de l'onglet KPI : repérées par le titre de leur tableau */
+      radar: { entete: 'radar', colonnes: { v2027: ['valeur 2027'], v2026: ['valeur 2026'], cible: ['cible'], s2027: ['score 2027'], s2026: ['score 2026'], sens: ['sens'] } },
+      entonnoir: { entete: 'entonnoir', colonnes: { valeur: ['valeur'] } },
+      cascade: { entete: 'cascade', colonnes: { debut: ['debut'], fin: ['fin'], basePos: ['base positive'], baseNeg: ['base negative'], partPos: ['partie positive'], partNeg: ['partie negative'] } },
+      jauge: { entete: 'jauge', colonnes: { valeur: ['valeur'], affichee: ['affichee'], maximum: ['maximum', 'max'], repere: ['repere'] } },
+      bullet: { entete: 'poste du cycle de cash', colonnes: { valeur: ['valeur 2027', 'valeur'], seuil: ['seuil vert'], ecart: ['ecart au vert'] } },
+      recommandations: { titre: 'la decision du dg', motif: /^\s*([1-9])\s*[.)]\s+\S/ }
+    },
+    controles: { onglet: 'CONTROLES', total: ['nombre de controles'], conformes: ['controles conformes'] },
+    lisezMoi: { onglet: 'LISEZMOI', titre: 'le message principal' },
+    /* Lignes utilisées seulement pour le contrôle de cohérence des KPI */
+    coherence: {
+      RTFT: ['EB'],
+      RIFRS: ['A7', 'A8', 'L2', 'L3', 'L6', 'RN', 'CA', 'AC']
+    }
+  });
+
+  /* Les 6 cartes de l'écran « Situation TFT » (onglet DASHBOARD) */
+  var CARTES_SITUATION = ['K01', 'K03', 'K09', 'K11', 'K13', 'K14'];
+
+  /* Les familles de KPI : fixées par le cahier des charges */
+  var FAMILLES = [
+    { id: 'qualite-cash', nom: 'Qualité du cash', icone: 'goutte', kpi: ['K01', 'K02'] },
+    { id: 'cash-libre', nom: 'Cash libre et investissements', icone: 'fleche', kpi: ['K03', 'K04', 'K05'] },
+    { id: 'bfr', nom: 'BFR et cycle de cash', icone: 'cycle', kpi: ['K06', 'K07', 'K08', 'K09'] },
+    { id: 'dette', nom: 'Dette et solvabilité', icone: 'banque', kpi: ['K10', 'K11', 'K12', 'K13'] },
+    { id: 'actionnaires', nom: 'Actionnaires', icone: 'personnes', kpi: ['K14'] }
+  ];
+
+  /* Formules affichées dans les infobulles (traduction des formules du fichier) */
+  var FORMULES = {
+    K01: 'Flux opérationnel (OT) ÷ EBITDA',
+    K02: 'Flux opérationnel (OT) ÷ résultat net IFRS',
+    K03: 'OT + I1 (acquisitions d’immobilisations) + I2 (frais de développement)',
+    K04: 'K03 + F4 (principal de la location) + F5 (intérêts de la location)',
+    K05: '− (I1 + I2) ÷ O2 (dotations aux amortissements)',
+    K06: 'Clients IFRS ÷ (chiffre d’affaires IFRS × (1 + TVA)) × 360',
+    K07: 'Stocks IFRS ÷ achats consommés IFRS × 360',
+    K08: 'Fournisseurs IFRS ÷ (achats consommés IFRS × (1 + TVA)) × 360',
+    K09: 'K06 + K07 − K08',
+    K10: 'Emprunts (L2) + dette de location (L3) − trésorerie nette de clôture (T1)',
+    K11: 'K10 ÷ EBITDA',
+    K12: '(Emprunts L2 − T1) ÷ (EBITDA + F4 + F5)',
+    K13: 'OT ÷ (remboursements F2 + intérêts F3 + loyers F4 + F5)',
+    K14: 'K03 ÷ dividendes versés (F6)',
+    OT: 'Somme des lignes O1 à O13 du TFT',
+    IT: 'Somme des lignes I1 à I3 du TFT',
+    FT: 'Somme des lignes F1 à F6 du TFT',
+    V: 'OT + IT + FT',
+    T0: 'Trésorerie nette IFRS au 31/12/2026',
+    T1: 'T0 + V'
+  };
+
+  var LIMITES = Object.freeze({
+    tailleMax: 10 * 1024 * 1024,      /* 10 Mo */
+    lignesMax: 50000,                  /* 50 000 lignes */
+    colonnesLues: 200,
+    extensions: ['.xlsx', '.xlsm', '.xls', '.csv']
+  });
+
+  var INTERVALLES = Object.freeze({
+    direct: 2000,          /* mode A : toutes les 2 secondes */
+    localhost: 3000,       /* mode B en localhost : 3 secondes */
+    enLigne: 60000,        /* mode B en ligne : 60 secondes */
+    stabilisation: 700,    /* attente après un changement de date */
+    reprise: 333,          /* 3 reprises en 1 seconde */
+    eclat: 2000
+  });
+
+  var CLE_PREFERENCE = 'atlas-tft.synchronisation';
+  var BASE_IDB = 'atlas-tft';
+  var MAGASIN_IDB = 'poignees';
+
+  var reduireAnimations = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var ecranMobile = window.matchMedia('(max-width: 768px)');
+
+  /* =====================================================================
+     SÉCURITÉ (2/3) · contrôle des fichiers, objets sans prototype,
+     neutralisation des exports
+     ===================================================================== */
+  var CLES_INTERDITES = ['__proto__', 'constructor', 'prototype'];
+
+  function ErreurSecurite(message) { this.name = 'ErreurSecurite'; this.message = message; }
+  function ErreurLecture(message) { this.name = 'ErreurLecture'; this.message = message; }
+  function ErreurStructure(problemes) { this.name = 'ErreurStructure'; this.problemes = problemes; this.message = problemes[0] || 'Structure du fichier invalide.'; }
+
+  function objetVide() { return Object.create(null); }
+
+  function cleAutorisee(cle) {
+    var c = String(cle).trim().toLowerCase();
+    return CLES_INTERDITES.indexOf(c) === -1;
+  }
+
+  function extensionDe(nom) {
+    var m = /\.[A-Za-z0-9]+$/.exec(String(nom || ''));
+    return m ? m[0].toLowerCase() : '';
+  }
+
+  /* Contrôle avant lecture : extension et taille */
+  function controlerFichierAvantLecture(nom, taille) {
+    var ext = extensionDe(nom);
+    if (LIMITES.extensions.indexOf(ext) === -1) {
+      throw new ErreurSecurite('Ce type de fichier n’est pas accepté. Choisissez un fichier .xlsx, .xlsm, .xls ou .csv.');
+    }
+    if (typeof taille === 'number' && taille > LIMITES.tailleMax) {
+      throw new ErreurSecurite('Le fichier dépasse la taille maximale de 10 Mo : il a été refusé.');
+    }
+    if (typeof taille === 'number' && taille === 0) {
+      throw new ErreurLecture('Le fichier est vide.');
+    }
+  }
+
+  /* Contrôle des octets : la signature doit correspondre à l'extension */
+  function controlerOctets(octets, nom) {
+    var ext = extensionDe(nom);
+    controlerFichierAvantLecture(nom, octets.byteLength);
+    var o = new Uint8Array(octets, 0, Math.min(8, octets.byteLength));
+    var zip = o.length >= 4 && o[0] === 0x50 && o[1] === 0x4B && o[2] === 0x03 && o[3] === 0x04;
+    var ole = o.length >= 8 && o[0] === 0xD0 && o[1] === 0xCF && o[2] === 0x11 && o[3] === 0xE0 && o[4] === 0xA1 && o[5] === 0xB1 && o[6] === 0x1A && o[7] === 0xE1;
+    if ((ext === '.xlsx' || ext === '.xlsm') && !zip) {
+      throw new ErreurSecurite('Ce fichier porte l’extension ' + ext + ' mais ce n’est pas un vrai classeur Excel : il a été refusé.');
+    }
+    if (ext === '.xls' && !ole) {
+      throw new ErreurSecurite('Ce fichier porte l’extension .xls mais ce n’est pas un vrai classeur Excel : il a été refusé.');
+    }
+    if (ext === '.csv') {
+      var tout = new Uint8Array(octets);
+      var limite = Math.min(tout.length, 65536);
+      for (var i = 0; i < limite; i++) {
+        if (tout[i] === 0) { throw new ErreurSecurite('Ce fichier .csv contient des données binaires : il a été refusé.'); }
+      }
+    }
+  }
+
+  /* Protection des exports contre les formules piégées */
+  function neutraliserCellule(valeur) {
+    if (typeof valeur !== 'string') { return valeur; }
+    if (/^[=+\-−@\t\r\n]/.test(valeur)) { return '\'' + valeur; }
+    return valeur;
+  }
+
+  /* =====================================================================
+     UTILITAIRES · DOM sûr (createElement + textContent uniquement)
+     ===================================================================== */
+  function el(balise, attributs) {
+    var n = document.createElement(balise);
+    if (attributs) {
+      Object.keys(attributs).forEach(function (cle) {
+        var v = attributs[cle];
+        if (v === null || v === undefined || v === false) { return; }
+        if (cle === 'classe') { n.className = v; }
+        else if (cle === 'texte') { n.textContent = String(v); }
+        else if (cle.indexOf('sur') === 0 && typeof v === 'function') { n.addEventListener(cle.slice(3).toLowerCase(), v); }
+        else if (cle.slice(0, 2).toLowerCase() === 'on') { /* jamais d'attribut d'évènement en texte */ }
+        else { n.setAttribute(cle, v === true ? '' : String(v)); }
+      });
+    }
+    for (var i = 2; i < arguments.length; i++) { ajouter(n, arguments[i]); }
+    return n;
+  }
+  function ajouter(parent, enfant) {
+    if (enfant === null || enfant === undefined || enfant === false) { return; }
+    if (Array.isArray(enfant)) { enfant.forEach(function (e) { ajouter(parent, e); }); return; }
+    if (typeof enfant === 'string' || typeof enfant === 'number') { parent.appendChild(document.createTextNode(String(enfant))); return; }
+    parent.appendChild(enfant);
+  }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var ICONES = {
+    situation: ['M3 12h4l3-8 4 16 3-8h4'],
+    familles: ['M4 4h7v7H4z', 'M13 4h7v7h-7z', 'M4 13h7v7H4z', 'M13 13h7v7h-7z'],
+    goutte: ['M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z'],
+    fleche: ['M12 20V8', 'M7 13l5-5 5 5', 'M5 4h14'],
+    cycle: ['M20 12a8 8 0 1 1-2.3-5.7', 'M20 4v5h-5'],
+    banque: ['M3 10l9-6 9 6', 'M5 10v8', 'M9.5 10v8', 'M14.5 10v8', 'M19 10v8', 'M3 20h18'],
+    personnes: ['M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M2 20c0-3 3-5 6-5s6 2 6 5', 'M16 11a3 3 0 1 0 0-6', 'M18 15c2 .5 4 2 4 5'],
+    sync: ['M4 12a8 8 0 0 1 14-5.3L20 9', 'M20 4v5h-5', 'M20 12a8 8 0 0 1-14 5.3L4 15', 'M4 20v-5h5'],
+    lien: ['M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1', 'M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'],
+    importer: ['M12 16V4', 'M7 9l5-5 5 5', 'M4 20h16'],
+    exporter: ['M12 4v12', 'M7 11l5 5 5-5', 'M4 20h16'],
+    info: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 11v5', 'M12 8h.01'],
+    valide: ['M5 12l4 4 10-10'],
+    attention: ['M12 3l10 18H2z', 'M12 10v4', 'M12 17h.01'],
+    croix: ['M6 6l12 12', 'M18 6L6 18'],
+    tiret: ['M6 12h12'],
+    chevron: ['M9 6l6 6-6 6'],
+    fichier: ['M14 3H6v18h12V7z', 'M14 3v4h4'],
+    corbeille: ['M4 7h16', 'M9 7V4h6v3', 'M6 7l1 13h10l1-13'],
+    reessayer: ['M4 12a8 8 0 1 0 2.3-5.7', 'M4 4v5h5'],
+    tresor: ['M3 7h18v12H3z', 'M3 11h18', 'M8 15h3'],
+    entree: ['M12 4v16', 'M5 13l7 7 7-7'],
+    sortie: ['M12 20V4', 'M5 11l7-7 7 7'],
+    balance: ['M12 4v16', 'M5 8h14', 'M5 8l-3 7h6z', 'M19 8l-3 7h6z']
+  };
+  function icone(nom, classe) {
+    var s = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('fill', 'none');
+    s.setAttribute('stroke', 'currentColor');
+    s.setAttribute('stroke-width', '1.5');
+    s.setAttribute('stroke-linecap', 'round');
+    s.setAttribute('stroke-linejoin', 'round');
+    s.setAttribute('aria-hidden', 'true');
+    s.setAttribute('focusable', 'false');
+    if (classe) { s.setAttribute('class', classe); }
+    (ICONES[nom] || ICONES.info).forEach(function (d) {
+      var p = document.createElementNS(SVGNS, 'path');
+      p.setAttribute('d', d);
+      s.appendChild(p);
+    });
+    return s;
+  }
+
+  function attendre(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function estNombre(x) { return typeof x === 'number' && isFinite(x); }
+
+  /* Normalisation des textes : sans accents, minuscules, espaces simples */
+  function normaliser(s) {
+    if (s === null || s === undefined) { return ''; }
+    return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[’‘`]/g, '\'').replace(/[  \s]+/g, ' ')
+      .trim().toLowerCase();
+  }
+  function normaliserOnglet(s) { return normaliser(s).replace(/[^a-z0-9]/g, ''); }
+
+  /* Lecture tolérante des nombres : 1 234,56 · 1,234.56 · (1 234) · 12 % · − 5 */
+  function lireNombre(v) {
+    if (typeof v === 'number') { return isFinite(v) ? v : null; }
+    if (typeof v === 'boolean' || v === null || v === undefined) { return null; }
+    var s = String(v).trim();
+    if (!s) { return null; }
+    var negatif = false;
+    if (/^\(.*\)$/.test(s)) { negatif = true; s = s.slice(1, -1); }
+    s = s.replace(/[−–]/g, '-').replace(/[  \s]/g, '').replace(/(mad|dh|dhs|j|x|×)$/i, '');
+    var pourcent = false;
+    if (/%$/.test(s)) { pourcent = true; s = s.slice(0, -1); }
+    if (/^-/.test(s)) { negatif = !negatif; s = s.slice(1); }
+    if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) { s = s.replace(/,/g, ''); }
+    else if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) { s = s.replace(/\./g, '').replace(',', '.'); }
+    else if (/^\d+,\d+$/.test(s)) { s = s.replace(',', '.'); }
+    if (!/^\d+(\.\d+)?$/.test(s) && !/^\.\d+$/.test(s)) { return null; }
+    var n = parseFloat(s);
+    if (!isFinite(n)) { return null; }
+    if (pourcent) { n = n / 100; }
+    return negatif ? -n : n;
+  }
+
+  /* Lecture tolérante des dates : numéro de série Excel, jj/mm/aaaa, aaaa-mm-jj */
+  function lireDate(v) {
+    if (typeof v === 'number' && isFinite(v)) { return new Date(Math.round((v - 25569) * 86400000)); }
+    var s = String(v || '').trim();
+    var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+    if (m) { return new Date(Date.UTC(+m[3], +m[2] - 1, +m[1])); }
+    m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+    if (m) { return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); }
+    return null;
+  }
+
+  /* ---------- Formats français ---------- */
+  var MOINS = '− ';
+  function grouper(entier) { return entier.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function nombreFr(x, decimales) {
+    if (!estNombre(x)) { return 'n.s.'; }
+    var arrondi = Number(Math.abs(x).toFixed(decimales));
+    var parties = arrondi.toFixed(decimales).split('.');
+    var texte = grouper(parties[0]) + (parties[1] ? ',' + parties[1] : '');
+    return (x < 0 && arrondi !== 0 ? MOINS : '') + texte;
+  }
+  /* Montant en DH → milliers de dirhams, 1 décimale au plus (sans « ,0 ») */
+  function kmad(dh) {
+    if (!estNombre(dh)) { return 'n.s.'; }
+    var k = dh / 1000;
+    var arrondi1 = Math.round(k * 10) / 10;
+    return nombreFr(k, Math.abs(arrondi1 - Math.round(arrondi1)) < 1e-9 ? 0 : 1);
+  }
+  function kmadFixe(dh) { return estNombre(dh) ? nombreFr(dh / 1000, 1) : 'n.s.'; }
+
+  function typeUnite(u) {
+    var n = normaliser(u);
+    if (n === 'dh' || n === 'mad' || n.indexOf('dirham') === 0 || n === 'k mad') { return 'montant'; }
+    if (n.indexOf('jour') === 0 || n === 'j') { return 'jours'; }
+    if (n === 'fois' || n === 'x' || n === '×') { return 'fois'; }
+    return 'ratio';
+  }
+  /* Valeur d'un KPI découpée en chiffre + unité */
+  function decouper(v, unite) {
+    var t = typeUnite(unite);
+    if (!estNombre(v)) { return { chiffre: 'n.s.', unite: '' }; }
+    if (t === 'montant') { return { chiffre: kmad(v), unite: 'k MAD' }; }
+    if (t === 'jours') { return { chiffre: nombreFr(v, 1), unite: 'j' }; }
+    if (t === 'fois') { return { chiffre: nombreFr(v, 2), unite: '×' }; }
+    return { chiffre: nombreFr(v, 2), unite: '' };
+  }
+  function formater(v, unite) {
+    var d = decouper(v, unite);
+    return d.unite ? d.chiffre + ' ' + d.unite : d.chiffre;
+  }
+  function formaterVariation(delta, unite) {
+    if (!estNombre(delta)) { return 'n.s.'; }
+    var t = typeUnite(unite);
+    var abs;
+    if (t === 'montant') { abs = kmad(Math.abs(delta)) + ' k MAD'; }
+    else if (t === 'jours') { abs = nombreFr(Math.abs(delta), 1) + ' j'; }
+    else if (t === 'fois') { abs = nombreFr(Math.abs(delta), 2) + ' ×'; }
+    else { abs = nombreFr(Math.abs(delta), 2); }
+    var zero = /^0([,]0+)?( |$)/.test(abs);
+    return (zero ? '' : (delta < 0 ? MOINS : '+ ')) + abs;
+  }
+  function heureFr(date) {
+    var h = date.getHours(), m = date.getMinutes();
+    return h + ' h ' + (m < 10 ? '0' : '') + m;
+  }
+
+  /* ---------- Feux ---------- */
+  function normaliserFeu(v) {
+    var n = normaliser(v);
+    if (n === 'vert' || n === 'green') { return 'VERT'; }
+    if (n === 'ambre' || n === 'orange' || n === 'amber') { return 'AMBRE'; }
+    if (n === 'rouge' || n === 'red') { return 'ROUGE'; }
+    return 'AUCUN';
+  }
+  var FEUX = {
+    VERT: { classe: 'vert', mot: 'Vert', icone: 'valide', rang: 1 },
+    AMBRE: { classe: 'orange', mot: 'Orange', icone: 'attention', rang: 2 },
+    ROUGE: { classe: 'rouge', mot: 'Rouge', icone: 'croix', rang: 3 },
+    AUCUN: { classe: 'neutre', mot: 'Sans seuil', icone: 'tiret', rang: 0 }
+  };
+  function pastille(feu, prefixe) {
+    var f = FEUX[feu] || FEUX.AUCUN;
+    return el('span', { classe: 'pastille ' + f.classe }, icone(f.icone), (prefixe ? prefixe + ' ' : '') + f.mot);
+  }
+
+  /* =====================================================================
+     LECTURE DES DONNÉES
+     ===================================================================== */
+
+  /* Ouverture du classeur : valeurs seulement, aucune macro exécutée */
+  function decoderTexte(octets) {
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(octets); }
+    catch (e) { return new TextDecoder('windows-1252').decode(octets); }
+  }
+  function lireClasseur(octets, nom) {
+    var ext = extensionDe(nom);
+    var options = {
+      cellFormula: true,   /* lu pour détecter les formules sans valeur, jamais exécuté */
+      cellHTML: false, cellNF: false, cellStyles: false, cellDates: false,
+      sheetStubs: false, bookVBA: false, WTF: false, sheetRows: LIMITES.lignesMax + 1
+    };
+    var classeur;
+    try {
+      if (ext === '.csv') {
+        var texte = decoderTexte(new Uint8Array(octets)).replace(/^﻿/, '');
+        var premiere = texte.split(/\r?\n/, 1)[0] || '';
+        var nbPV = (premiere.match(/;/g) || []).length;
+        var nbV = (premiere.match(/,/g) || []).length;
+        options.type = 'string';
+        options.FS = nbPV >= nbV ? ';' : ',';
+        options.raw = true;
+        classeur = XLSX.read(texte, options);
+      } else {
+        options.type = 'array';
+        classeur = XLSX.read(new Uint8Array(octets), options);
+      }
+    } catch (e) {
+      throw new ErreurLecture('Le fichier n’est pas un classeur lisible (il est peut-être endommagé ou en cours d’enregistrement).');
+    }
+    if (!classeur || !Array.isArray(classeur.SheetNames) || classeur.SheetNames.length === 0) {
+      throw new ErreurLecture('Le classeur ne contient aucun onglet lisible.');
+    }
+    /* Contrôle du nombre de lignes */
+    var total = 0;
+    classeur.SheetNames.forEach(function (n) {
+      var f = classeur.Sheets[n];
+      var ref = f && (f['!fullref'] || f['!ref']);
+      if (ref) { var p = XLSX.utils.decode_range(ref); total += (p.e.r - p.s.r + 1); }
+    });
+    if (total > LIMITES.lignesMax) {
+      throw new ErreurSecurite('Le fichier dépasse 50 000 lignes : il a été refusé.');
+    }
+    return classeur;
+  }
+
+  /* Valeur d'une cellule SheetJS : erreurs et formules sans valeur repérées */
+  var VIDE = null;
+  function valeurCellule(c, compteurs) {
+    if (!c) { return VIDE; }
+    if (c.t === 'e') { compteurs.erreurs++; return VIDE; }
+    if (c.f && (c.v === undefined || c.v === null || c.v === '')) { compteurs.formulesSansValeur++; return VIDE; }
+    if (c.v === undefined || c.v === null) { return VIDE; }
+    if (typeof c.v === 'string') {
+      var s = c.v;
+      if (/^#(N\/A|DIV\/0!|VALUE!|REF!|NAME\?|NUM!|NULL!|SPILL!|CALC!)$/i.test(s.trim())) { compteurs.erreurs++; return VIDE; }
+      return s;
+    }
+    if (c.v instanceof Date) { return c.v.getTime(); }
+    return c.v;
+  }
+
+  /* Transformation d'un onglet en grille (tableau de lignes) */
+  function construireGrille(feuille, compteurs) {
+    var grille = [];
+    var ref = feuille && feuille['!ref'];
+    if (!ref) { return grille; }
+    var p = XLSX.utils.decode_range(ref);
+    var derCol = Math.min(p.e.c, p.s.c + LIMITES.colonnesLues);
+    var derLigne = Math.min(p.e.r, LIMITES.lignesMax);
+    for (var r = 0; r <= derLigne; r++) {
+      var ligne = [];
+      var vide = true;
+      for (var c = 0; c <= derCol; c++) {
+        var v = r < p.s.r || c < p.s.c ? VIDE : valeurCellule(feuille[XLSX.utils.encode_cell({ r: r, c: c })], compteurs);
+        ligne.push(v);
+        if (v !== VIDE && v !== '') { vide = false; }
+      }
+      grille.push(vide ? [] : ligne);
+    }
+    return grille;
+  }
+
+  /* Recherche des onglets (tolère espaces, majuscules, accents, synonymes) */
+  function resoudreOnglets(classeur, problemes) {
+    var index = new Map();
+    classeur.SheetNames.forEach(function (n) { index.set(normaliserOnglet(n), n); });
+    var trouves = objetVide();
+    Object.keys(FORMAT_ATTENDU.onglets).forEach(function (cle) {
+      var def = FORMAT_ATTENDU.onglets[cle];
+      var candidats = [def.nom].concat(def.synonymes);
+      var reel = null;
+      for (var i = 0; i < candidats.length && !reel; i++) { reel = index.get(normaliserOnglet(candidats[i])) || null; }
+      trouves[cle] = reel;
+      if (!reel && def.obligatoire) { problemes.push('L’onglet « ' + def.nom + ' » est introuvable dans le classeur.'); }
+    });
+    return trouves;
+  }
+
+  /* Noms définis : lus dans le classeur, jamais par une adresse figée */
+  function indexerNoms(classeur) {
+    var index = new Map();
+    var noms = (classeur.Workbook && Array.isArray(classeur.Workbook.Names)) ? classeur.Workbook.Names : [];
+    noms.forEach(function (n) {
+      if (!n || !n.Name || !n.Ref) { return; }
+      var cle = String(n.Name).toUpperCase();
+      if (!index.has(cle) || n.Sheet === undefined) { index.set(cle, String(n.Ref)); }
+    });
+    return index;
+  }
+  function trouverFeuilleParNom(classeur, nomFeuille) {
+    if (classeur.Sheets[nomFeuille]) { return nomFeuille; }
+    var cible = normaliserOnglet(nomFeuille);
+    for (var i = 0; i < classeur.SheetNames.length; i++) {
+      if (normaliserOnglet(classeur.SheetNames[i]) === cible) { return classeur.SheetNames[i]; }
+    }
+    return null;
+  }
+  function lireNomDefini(classeur, indexNoms, def, compteurs) {
+    var candidats = [def.nom].concat(def.synonymes || []);
+    var ref = null;
+    for (var i = 0; i < candidats.length && !ref; i++) { ref = indexNoms.get(candidats[i].toUpperCase()) || null; }
+    if (!ref) { return { trouve: false }; }
+    var pos = ref.lastIndexOf('!');
+    if (pos < 0 || /#REF!/i.test(ref)) { return { trouve: false }; }
+    var nomFeuille = ref.slice(0, pos).replace(/^=/, '').replace(/^'(.*)'$/, '$1').replace(/''/g, '\'');
+    var adresse = ref.slice(pos + 1).replace(/\$/g, '').split(':')[0];
+    var feuilleReelle = trouverFeuilleParNom(classeur, nomFeuille);
+    if (!feuilleReelle || !/^[A-Z]{1,3}\d{1,7}$/i.test(adresse)) { return { trouve: false }; }
+    var cellule = classeur.Sheets[feuilleReelle][adresse.toUpperCase()];
+    var local = { erreurs: 0, formulesSansValeur: 0 };
+    var v = valeurCellule(cellule, local);
+    compteurs.erreurs += local.erreurs;
+    compteurs.formulesSansValeur += local.formulesSansValeur;
+    return { trouve: true, valeur: v, sansValeur: local.formulesSansValeur > 0, enErreur: local.erreurs > 0 };
+  }
+
+  /* Recherche d'une colonne d'en-tête par synonymes (exact puis début) */
+  function trouverColonne(ligne, synonymes) {
+    var norm = ligne.map(normaliser);
+    var syn = synonymes.map(normaliser);
+    for (var i = 0; i < norm.length; i++) { if (norm[i] && syn.indexOf(norm[i]) !== -1) { return i; } }
+    for (var j = 0; j < norm.length; j++) {
+      for (var k = 0; k < syn.length; k++) { if (norm[j] && syn[k].length > 3 && norm[j].indexOf(syn[k]) === 0) { return j; } }
+    }
+    return -1;
+  }
+  function celluleTexte(ligne, i) { return (ligne && i >= 0 && ligne[i] !== VIDE && ligne[i] !== undefined) ? String(ligne[i]) : ''; }
+  function ligneContient(ligne, texteNormalise, debutSeulement) {
+    if (!ligne) { return -1; }
+    for (var i = 0; i < ligne.length; i++) {
+      var n = normaliser(ligne[i]);
+      if (!n) { continue; }
+      if (debutSeulement ? n.indexOf(texteNormalise) === 0 : n.indexOf(texteNormalise) !== -1) { return i; }
+    }
+    return -1;
+  }
+
+  /* Recherche d'un code de ligne : colonne B d'abord, puis colonnes A à D */
+  function trouverCode(grille, code, debut, fin) {
+    var c = String(code).toUpperCase();
+    var d = debut || 0, f = Math.min(fin === undefined ? grille.length : fin, grille.length);
+    var colonnes = [1, 0, 2, 3];
+    for (var k = 0; k < colonnes.length; k++) {
+      for (var r = d; r < f; r++) {
+        var v = grille[r] && grille[r][colonnes[k]];
+        if (v !== VIDE && v !== undefined && String(v).trim().toUpperCase() === c) { return { ligne: r, colonne: colonnes[k] }; }
+      }
+    }
+    return null;
+  }
+
+  /* En-tête la plus proche au-dessus d'une ligne, contenant les colonnes voulues */
+  function enteteAuDessus(grille, ligne, synonymesA, synonymesB) {
+    for (var r = ligne - 1; r >= Math.max(0, ligne - 60); r--) {
+      var l = grille[r];
+      if (!l || !l.length) { continue; }
+      if (trouverColonne(l, synonymesA) !== -1 && (!synonymesB || trouverColonne(l, synonymesB) !== -1)) { return r; }
+    }
+    return -1;
+  }
+
+  /* --- Onglet TFT : lignes O1 à T1, 2027 et 2026 --- */
+  function lireTFT(grille, problemes) {
+    var cfg = FORMAT_ATTENDU.tft;
+    var lignes = [];
+    var parCode = objetVide();
+    var premier = trouverCode(grille, cfg.codes[0]);
+    if (!premier) { problemes.push('Le code de ligne « ' + cfg.codes[0] + ' » est introuvable dans la colonne B de l’onglet TFT.'); return null; }
+    var rEntete = enteteAuDessus(grille, premier.ligne, cfg.colonnes.a2027, cfg.colonnes.a2026);
+    if (rEntete === -1) { problemes.push('La ligne d’en-têtes « 2027 » et « 2026 » est introuvable au-dessus de O1 dans l’onglet TFT.'); return null; }
+    var entete = grille[rEntete];
+    var cCode = premier.colonne;
+    var cLib = trouverColonne(entete, cfg.colonnes.libelle);
+    if (cLib === -1) { cLib = cCode + 1; }
+    var c27 = trouverColonne(entete, cfg.colonnes.a2027);
+    var c26 = trouverColonne(entete, cfg.colonnes.a2026);
+    var dernier = trouverCode(grille, 'T1', premier.ligne);
+    var fin = dernier ? dernier.ligne : Math.min(grille.length - 1, premier.ligne + 80);
+    for (var r = rEntete + 1; r <= fin; r++) {
+      var l = grille[r];
+      if (!l || !l.length) { continue; }
+      var code = celluleTexte(l, cCode).trim().toUpperCase();
+      var libBrut = celluleTexte(l, cLib);
+      var libelle = libBrut.trim();
+      if (!code && !libelle) { continue; }
+      if (normaliser(libelle).indexOf('total') === 0 && !code) { continue; }
+      if (!code) { lignes.push({ type: 'titre', code: '', libelle: libelle, niveau: 0 }); continue; }
+      if (!cleAutorisee(code)) { continue; }
+      var niveau = /^\s{2,}/.test(libBrut) ? 1 : 0;
+      var type = cfg.totaux.indexOf(code) !== -1 ? 'total' : (cfg.sousTotaux.indexOf(code) !== -1 ? 'sous-total' : 'ligne');
+      var item = { type: type, code: code, libelle: libelle, niveau: niveau, v2027: lireNombre(l[c27]), v2026: lireNombre(l[c26]) };
+      lignes.push(item);
+      if (!parCode[code]) { parCode[code] = item; }
+    }
+    cfg.codes.forEach(function (code) {
+      var it = parCode[code];
+      if (!it) { problemes.push('Le code de ligne « ' + code + ' » est introuvable dans la colonne B de l’onglet TFT.'); }
+      else if (!estNombre(it.v2027) || !estNombre(it.v2026)) { problemes.push('La ligne « ' + code + ' » de l’onglet TFT n’a pas de montant numérique pour 2027 ou 2026.'); }
+    });
+    return { lignes: lignes, parCode: parCode };
+  }
+
+  /* --- Onglet KPI : section 1 (valeurs et feux) --- */
+  function lireKpiSection1(grille, problemes) {
+    var cfg = FORMAT_ATTENDU.kpi;
+    var rEntete = -1;
+    for (var r = 0; r < grille.length; r++) {
+      if (trouverColonne(grille[r] || [], cfg.colonnes.feu2027) !== -1 && trouverColonne(grille[r] || [], cfg.colonnes.a2027) !== -1) { rEntete = r; break; }
+    }
+    if (rEntete === -1) { problemes.push('Le tableau des KPI (colonnes « 2027 », « 2026 », « Feu 2027 ») est introuvable dans l’onglet KPI.'); return null; }
+    var e = grille[rEntete];
+    var col = objetVide();
+    Object.keys(cfg.colonnes).forEach(function (k) { col[k] = trouverColonne(e, cfg.colonnes[k]); });
+    var resultat = objetVide();
+    var ordre = 0;
+    cfg.codes.forEach(function (code) {
+      var pos = trouverCode(grille, code, rEntete + 1, rEntete + 40);
+      if (!pos) { problemes.push('Le code de ligne « ' + code + ' » est introuvable dans la colonne B de l’onglet KPI (section 1).'); return; }
+      var l = grille[pos.ligne];
+      var nomDefini = celluleTexte(l, col.nomDefini);
+      resultat[code] = {
+        code: code,
+        ordre: pos.ligne * 100 + (ordre++),
+        nom: celluleTexte(l, col.nom).trim(),
+        valeurLigne2027: lireNombre(l[col.a2027]),
+        valeurLigne2026: lireNombre(l[col.a2026]),
+        variation: col.variation >= 0 ? lireNombre(l[col.variation]) : null,
+        feu2027: normaliserFeu(celluleTexte(l, col.feu2027)),
+        feu2026: normaliserFeu(celluleTexte(l, col.feu2026)),
+        uniteLigne: nomDefini.indexOf('·') !== -1 ? nomDefini.split('·').pop().trim() : ''
+      };
+      if (!resultat[code].nom) { problemes.push('Le nom du KPI « ' + code + ' » est vide dans l’onglet KPI.'); }
+    });
+    return { lignes: resultat, finSection: rEntete };
+  }
+
+  /* --- Onglet KPI : section 2 (dictionnaire, recopié mot pour mot) --- */
+  function lireDictionnaire(grille, problemes) {
+    var cfg = FORMAT_ATTENDU.kpi;
+    var rEntete = -1;
+    for (var r = 0; r < grille.length; r++) {
+      var l = grille[r] || [];
+      if (trouverColonne(l, cfg.dictionnaire.definition) !== -1 && trouverColonne(l, cfg.dictionnaire.pourquoi) !== -1) { rEntete = r; break; }
+    }
+    if (rEntete === -1) { problemes.push('Le dictionnaire des KPI (colonnes « Définition » et « Pourquoi il compte ») est introuvable dans l’onglet KPI.'); return null; }
+    var e = grille[rEntete];
+    var col = objetVide();
+    Object.keys(cfg.dictionnaire).forEach(function (k) { col[k] = trouverColonne(e, cfg.dictionnaire[k]); });
+    var dico = objetVide();
+    cfg.codes.forEach(function (code) {
+      var pos = trouverCode(grille, code, rEntete + 1, rEntete + 40);
+      if (!pos) { problemes.push('Le code « ' + code + ' » est introuvable dans le dictionnaire de l’onglet KPI.'); return; }
+      var l = grille[pos.ligne];
+      dico[code] = {
+        definition: celluleTexte(l, col.definition).trim(),
+        unite: celluleTexte(l, col.unite).trim(),
+        vert: celluleTexte(l, col.vert).trim(),
+        ambre: celluleTexte(l, col.ambre).trim(),
+        rouge: celluleTexte(l, col.rouge).trim(),
+        pourquoi: celluleTexte(l, col.pourquoi).trim()
+      };
+    });
+    return dico;
+  }
+
+  /* --- Onglet KPI : seuils des feux (facultatif, pour le contrôle de cohérence) --- */
+  function lireSeuils(grille) {
+    var cfg = FORMAT_ATTENDU.kpi;
+    var rEntete = -1;
+    for (var r = 0; r < grille.length; r++) {
+      var l = grille[r] || [];
+      if (trouverColonne(l, cfg.seuils.sens) !== -1 && trouverColonne(l, cfg.seuils.vert) !== -1) { rEntete = r; break; }
+    }
+    if (rEntete === -1) { return null; }
+    var e = grille[rEntete];
+    var cs = trouverColonne(e, cfg.seuils.sens), cv = trouverColonne(e, cfg.seuils.vert), ca = trouverColonne(e, cfg.seuils.ambre);
+    var seuils = objetVide();
+    cfg.codes.forEach(function (code) {
+      var pos = trouverCode(grille, code, rEntete + 1, rEntete + 40);
+      if (!pos) { return; }
+      var l = grille[pos.ligne];
+      seuils[code] = { sens: normaliser(l[cs]), vert: lireNombre(l[cv]), ambre: lireNombre(l[ca]) };
+    });
+    return seuils;
+  }
+
+  /* --- Tableaux des sections 4 et 5, repérés par leur titre --- */
+  function lireTableauTitre(grille, cfgTableau, nomSection, problemes, minimum) {
+    var titre = normaliser(cfgTableau.entete);
+    for (var r = 0; r < grille.length; r++) {
+      var cTitre = ligneContient(grille[r], titre, true);
+      if (cTitre === -1) { continue; }
+      var e = grille[r];
+      var col = objetVide();
+      Object.keys(cfgTableau.colonnes).forEach(function (k) { col[k] = trouverColonne(e, cfgTableau.colonnes[k]); });
+      var lignes = [];
+      for (var i = r + 1; i < grille.length; i++) {
+        var l = grille[i];
+        if (!l || !l.length) { break; }
+        var lib = celluleTexte(l, cTitre).trim();
+        if (!lib) { break; }
+        if (normaliser(lib).indexOf('total') === 0) { continue; }
+        var item = { libelle: lib.split(' · ')[0].trim(), libelleComplet: lib };
+        Object.keys(col).forEach(function (k) {
+          var brut = col[k] >= 0 ? l[col[k]] : VIDE;
+          var n = lireNombre(brut);
+          item[k] = n !== null ? n : (brut === VIDE ? null : String(brut));
+        });
+        lignes.push(item);
+      }
+      if (lignes.length < (minimum || 1)) { problemes.push('Le tableau « ' + nomSection + ' » de l’onglet KPI est vide ou incomplet.'); }
+      return lignes;
+    }
+    problemes.push('Le tableau « ' + nomSection + ' » est introuvable dans l’onglet KPI.');
+    return [];
+  }
+
+  /* --- Les 3 recommandations au DG (section 5), recopiées mot pour mot --- */
+  function lireRecommandations(grille) {
+    var cfg = FORMAT_ATTENDU.kpi.recommandations;
+    var debut = -1;
+    for (var r = 0; r < grille.length; r++) {
+      if (ligneContient(grille[r], cfg.titre, false) !== -1) { debut = r; break; }
+    }
+    if (debut === -1) { return { textes: [], avertissement: '' }; }
+    var textes = [];
+    var avertissement = '';
+    for (var i = debut + 1; i < grille.length && i < debut + 40; i++) {
+      var l = grille[i] || [];
+      for (var c = 0; c < l.length; c++) {
+        if (typeof l[c] !== 'string') { continue; }
+        var t = l[c].trim();
+        if (cfg.motif.test(t) && t.length > 20 && textes.length < 3) { textes.push(t); break; }
+        if (normaliser(t).indexOf('conseil d\'investissement') !== -1) { avertissement = t; break; }
+      }
+    }
+    return { textes: textes, avertissement: avertissement };
+  }
+
+  /* --- Message principal de l'onglet LISEZ-MOI --- */
+  function lireMessagePrincipal(grille) {
+    if (!grille) { return ''; }
+    var titre = normaliser(FORMAT_ATTENDU.lisezMoi.titre);
+    for (var r = 0; r < grille.length; r++) {
+      var c = ligneContient(grille[r], titre, true);
+      if (c === -1) { continue; }
+      for (var i = r + 1; i < Math.min(grille.length, r + 5); i++) {
+        var l = grille[i] || [];
+        for (var k = 0; k < l.length; k++) {
+          if (typeof l[k] === 'string' && l[k].trim().length > 20) { return l[k].trim(); }
+        }
+      }
+    }
+    return '';
+  }
+
+  /* --- Onglet CONTROLES : nombre de contrôles et contrôles conformes --- */
+  function lireCompteControles(grille) {
+    var res = { total: null, conformes: null };
+    if (!grille) { return res; }
+    var cfg = FORMAT_ATTENDU.controles;
+    function valeurApres(motif) {
+      for (var r = 0; r < Math.min(grille.length, 40); r++) {
+        var l = grille[r] || [];
+        for (var c = 0; c < l.length; c++) {
+          if (motif.indexOf(normaliser(l[c])) !== -1 && normaliser(l[c])) {
+            for (var k = c + 1; k < l.length; k++) { var n = lireNombre(l[k]); if (n !== null) { return n; } }
+          }
+        }
+      }
+      return null;
+    }
+    res.total = valeurApres(cfg.total);
+    res.conformes = valeurApres(cfg.conformes);
+    return res;
+  }
+
+  /* --- Lecture d'une valeur par code et par année (contrôle de cohérence) --- */
+  function lireCodeAnnee(grille, code, annee) {
+    if (!grille) { return null; }
+    var pos = trouverCode(grille, code);
+    if (!pos) { return null; }
+    for (var r = pos.ligne - 1; r >= Math.max(0, pos.ligne - 60); r--) {
+      var l = grille[r] || [];
+      var cIfrs = trouverColonne(l, ['ifrs ' + annee]);
+      var cAn = cIfrs !== -1 ? cIfrs : (function () {
+        for (var i = 0; i < l.length; i++) { if (normaliser(l[i]) === annee) { return i; } }
+        return -1;
+      })();
+      if (cAn !== -1) { return lireNombre(grille[pos.ligne][cAn]); }
+    }
+    return null;
+  }
+
+  /* --- Assemblage complet des données, avec validation de la structure --- */
+  function extraireDonnees(classeur) {
+    var problemes = [];
+    var compteurs = { erreurs: 0, formulesSansValeur: 0 };
+    var onglets = resoudreOnglets(classeur, problemes);
+    var grilles = objetVide();
+    Object.keys(onglets).forEach(function (cle) {
+      if (onglets[cle]) { grilles[cle] = construireGrille(classeur.Sheets[onglets[cle]], compteurs); }
+    });
+    if (problemes.length) { return { problemes: problemes, compteurs: compteurs }; }
+
+    /* Noms définis */
+    var indexNoms = indexerNoms(classeur);
+    var noms = objetVide();
+    var formulesManquantes = 0;
+    FORMAT_ATTENDU.nomsDefinis.forEach(function (def) {
+      var r = lireNomDefini(classeur, indexNoms, def, compteurs);
+      if (!r.trouve) { problemes.push('Le nom défini « ' + def.nom + ' » est introuvable (onglet ' + FORMAT_ATTENDU.onglets[def.onglet].nom + ').'); return; }
+      if (r.sansValeur) { formulesManquantes++; problemes.push('Le nom défini « ' + def.nom + ' » (onglet ' + FORMAT_ATTENDU.onglets[def.onglet].nom + ') n’a pas de valeur calculée.'); return; }
+      if (def.type === 'texte') {
+        if (r.valeur === VIDE) { problemes.push('Le nom défini « ' + def.nom + ' » (onglet ' + FORMAT_ATTENDU.onglets[def.onglet].nom + ') est vide.'); return; }
+        noms[def.nom] = String(r.valeur).trim();
+      } else {
+        var n = lireNombre(r.valeur);
+        if (n === null && def.type === 'nombre') { problemes.push('Le nom défini « ' + def.nom + ' » (onglet ' + FORMAT_ATTENDU.onglets[def.onglet].nom + ') ne contient pas un nombre.'); return; }
+        noms[def.nom] = n; /* pour un KPI, « n.s. » devient null et s'affiche « n.s. » */
+      }
+    });
+
+    var tft = lireTFT(grilles.TFT, problemes);
+    var s1 = lireKpiSection1(grilles.KPI, problemes);
+    var dico = lireDictionnaire(grilles.KPI, problemes);
+    var cfgK = FORMAT_ATTENDU.kpi;
+    var radar = lireTableauTitre(grilles.KPI, cfgK.radar, 'Radar', problemes, 3);
+    var entonnoir = lireTableauTitre(grilles.KPI, cfgK.entonnoir, 'Entonnoir', problemes, 2);
+    var cascade = lireTableauTitre(grilles.KPI, cfgK.cascade, 'Cascade', problemes, 3);
+    var jauges = lireTableauTitre(grilles.KPI, cfgK.jauge, 'Jauge', problemes, 3);
+    var bullet = lireTableauTitre(grilles.KPI, cfgK.bullet, 'Poste du cycle de cash (section 5)', problemes, 3);
+
+    if (formulesManquantes > 0 || (compteurs.formulesSansValeur > 0 && problemes.length > 0)) {
+      problemes.unshift('Ouvrez le fichier dans Excel et enregistrez-le pour calculer les formules.');
+    }
+    if (problemes.length) { return { problemes: problemes, compteurs: compteurs }; }
+
+    /* KPI : valeurs lues par nom défini, nom et feux par code de ligne */
+    var kpi = cfgK.codes.map(function (code) {
+      var p = cfgK.prefixes[code];
+      var l = s1.lignes[code];
+      var dd = dico[code];
+      return {
+        code: code, ordre: l.ordre, nom: l.nom,
+        v2027: noms[p + '_2027'], v2026: noms[p + '_2026'],
+        variation: estNombre(l.variation) ? l.variation : ((estNombre(noms[p + '_2027']) && estNombre(noms[p + '_2026'])) ? noms[p + '_2027'] - noms[p + '_2026'] : null),
+        feu2027: l.feu2027, feu2026: l.feu2026,
+        unite: dd.unite || l.uniteLigne,
+        definition: dd.definition, seuilVert: dd.vert, seuilAmbre: dd.ambre, seuilRouge: dd.rouge, pourquoi: dd.pourquoi,
+        nomDefini: p
+      };
+    });
+    kpi.sort(function (a, b) { return a.ordre - b.ordre; });
+
+    var params = objetVide();
+    FORMAT_ATTENDU.nomsDefinis.forEach(function (def) { if (def.nom.indexOf('PARAM_') === 0) { params[def.nom.slice(6)] = noms[def.nom]; } });
+
+    var totaux = objetVide();
+    ['OT', 'IT', 'FT', 'V', 'T0', 'T1'].forEach(function (c) { totaux[c] = { v2027: noms['TFT_' + c + '_2027'], v2026: noms['TFT_' + c + '_2026'] }; });
+
+    var recos = lireRecommandations(grilles.KPI);
+    var comptes = lireCompteControles(grilles.CONTROLES);
+
+    /* Sources du contrôle de cohérence (facultatives) */
+    var sources = objetVide();
+    FORMAT_ATTENDU.coherence.RTFT.forEach(function (c) { sources[c] = { v2027: lireCodeAnnee(grilles.RTFT, c, '2027'), v2026: lireCodeAnnee(grilles.RTFT, c, '2026') }; });
+    FORMAT_ATTENDU.coherence.RIFRS.forEach(function (c) { sources[c] = { v2027: lireCodeAnnee(grilles.RIFRS, c, '2027'), v2026: lireCodeAnnee(grilles.RIFRS, c, '2026') }; });
+
+    var donnees = {
+      message: lireMessagePrincipal(grilles.LISEZMOI),
+      tft: tft.lignes.map(function (l) { return { type: l.type, code: l.code, libelle: l.libelle, niveau: l.niveau, v2027: l.v2027 === undefined ? null : l.v2027, v2026: l.v2026 === undefined ? null : l.v2026 }; }),
+      totaux: totaux,
+      kpi: kpi,
+      params: params,
+      radar: radar, entonnoir: entonnoir, cascade: cascade, jauges: jauges, bullet: bullet,
+      recommandations: recos.textes, avertissement: recos.avertissement,
+      controles: { statut: noms.STATUT_GLOBAL, total: comptes.total, conformes: comptes.conformes },
+      sources: sources,
+      seuils: lireSeuils(grilles.KPI),
+      cellulesEnErreur: compteurs.erreurs
+    };
+    return { donnees: donnees, problemes: [], compteurs: compteurs };
+  }
+
+  /* =====================================================================
+     CALCULS · chaque calcul dans une fonction séparée, simple à vérifier
+     ===================================================================== */
+  function ligneTFT(d, code, annee) {
+    for (var i = 0; i < d.tft.length; i++) { if (d.tft[i].code === code) { return d.tft[i]['v' + annee]; } }
+    return null;
+  }
+  function kpiParCode(d, code) {
+    for (var i = 0; i < d.kpi.length; i++) { if (d.kpi[i].code === code) { return d.kpi[i]; } }
+    return null;
+  }
+  function diviser(a, b) { return (estNombre(a) && estNombre(b) && b !== 0) ? a / b : null; }
+
+  function calculConversion(ot, ebitda) { return diviser(ot, ebitda); }                         /* K01 */
+  function calculOtSurRn(ot, rn) { return diviser(ot, rn); }                                     /* K02 */
+  function calculFcf(ot, i1, i2) { return ot + i1 + i2; }                                        /* K03 */
+  function calculFcfApresLoyers(fcf, f4, f5) { return fcf + f4 + f5; }                           /* K04 */
+  function calculCapex(i1, i2, o2) { return diviser(-(i1 + i2), o2); }                           /* K05 */
+  function calculDelaiClients(clients, ca, tva, jours) { return estNombre(ca) ? diviser(clients, ca * (1 + tva)) * jours : null; } /* K06 */
+  function calculDelaiStocks(stocks, achats, jours) { var r = diviser(stocks, achats); return r === null ? null : r * jours; }        /* K07 */
+  function calculDelaiFournisseurs(fourn, achats, tva, jours) { return estNombre(achats) ? diviser(fourn, achats * (1 + tva)) * jours : null; } /* K08 */
+  function calculCycle(dso, dio, dpo) { return (estNombre(dso) && estNombre(dio) && estNombre(dpo)) ? dso + dio - dpo : null; } /* K09 */
+  function calculDetteNette(emprunts, location, tresorerie) { return emprunts + location - tresorerie; }                         /* K10 */
+  function calculLevier(dn, ebitda) { return diviser(dn, ebitda); }                              /* K11 */
+  function calculLevierHorsIfrs16(emprunts, t1, ebitda, f4, f5) { return diviser(emprunts - t1, ebitda + f4 + f5); }            /* K12 */
+  function calculCouvertureDette(ot, f2, f3, f4, f5) { return diviser(ot, -(f2 + f3 + f4 + f5)); }                              /* K13 */
+  function calculCouvertureDividendes(fcf, f6) { return diviser(fcf, -f6); }                     /* K14 */
+
+  /* Recalcul indépendant des 14 KPI (lignes du TFT + bilans IFRS) */
+  function recalculerKPI(d) {
+    var resultat = objetVide();
+    var tva = d.params.TVA, jours = d.params.JOURS;
+    ['2027', '2026'].forEach(function (a) {
+      var t = function (c) { return ligneTFT(d, c, a); };
+      var s = function (c) { return d.sources[c] ? d.sources[c]['v' + a] : null; };
+      var nul = function (x) { return estNombre(x) ? x : 0; };
+      var ot = t('OT'), eb = s('EB');
+      var fcf = calculFcf(ot, t('I1'), t('I2'));
+      var dso = calculDelaiClients(s('A8'), s('CA'), tva, jours);
+      var dio = calculDelaiStocks(s('A7'), s('AC'), jours);
+      var dpo = calculDelaiFournisseurs(s('L6'), s('AC'), tva, jours);
+      var dn = estNombre(s('L2')) ? calculDetteNette(s('L2'), nul(s('L3')), t('T1')) : null;
+      var r = objetVide();
+      r.K01 = calculConversion(ot, eb);
+      r.K02 = calculOtSurRn(ot, s('RN'));
+      r.K03 = fcf;
+      r.K04 = calculFcfApresLoyers(fcf, t('F4'), t('F5'));
+      r.K05 = calculCapex(t('I1'), t('I2'), t('O2'));
+      r.K06 = dso; r.K07 = dio; r.K08 = dpo;
+      r.K09 = calculCycle(dso, dio, dpo);
+      r.K10 = dn;
+      r.K11 = calculLevier(dn, eb);
+      r.K12 = estNombre(s('L2')) && estNombre(eb) ? calculLevierHorsIfrs16(s('L2'), t('T1'), eb, t('F4'), t('F5')) : null;
+      r.K13 = calculCouvertureDette(ot, t('F2'), t('F3'), t('F4'), t('F5'));
+      r.K14 = calculCouvertureDividendes(fcf, t('F6'));
+      resultat[a] = r;
+    });
+    return resultat;
+  }
+  /* Comparaison du recalcul et du fichier (c'est le fichier qui s'affiche) */
+  function verifierCoherence(d) {
+    var calc = recalculerKPI(d);
+    var ecarts = [], nonVerifiables = [];
+    d.kpi.forEach(function (k) {
+      ['2027', '2026'].forEach(function (a) {
+        var f = k['v' + a], c = calc[a][k.code];
+        if (!estNombre(c)) { if (estNombre(f)) { nonVerifiables.push(k.code + ' ' + a); } return; }
+        if (!estNombre(f)) { if (Math.abs(c) > 1e-9 && a === '2027') { ecarts.push(k.code + ' ' + a); } return; }
+        var tol = Math.max(1e-6, Math.abs(f) * 1e-6);
+        if (Math.abs(f - c) > tol) { ecarts.push(k.code + ' ' + a); }
+      });
+    });
+    return { ecarts: ecarts, nonVerifiables: nonVerifiables, calcul: calc };
+  }
+
+  /* Feu le plus sévère d'une famille (rouge > orange > vert ; « sans seuil » ignoré) */
+  function feuFamille(d, famille) {
+    var pire = 'AUCUN';
+    famille.kpi.forEach(function (code) {
+      var k = kpiParCode(d, code);
+      if (k && FEUX[k.feu2027].rang > FEUX[pire].rang) { pire = k.feu2027; }
+    });
+    return pire;
+  }
+  /* KPI d'une famille, dans l'ordre de l'onglet KPI */
+  function kpiDeFamille(d, famille) {
+    return famille.kpi.map(function (c) { return kpiParCode(d, c); }).filter(Boolean).sort(function (a, b) { return a.ordre - b.ordre; });
+  }
+
+  /* Disjoncteur : contrôles en écart */
+  function etatControles(d) {
+    var statut = normaliser(d.controles.statut).toUpperCase();
+    var conforme = statut === 'CONFORME';
+    var total = d.controles.total, ok = d.controles.conformes;
+    var ecarts = (estNombre(total) && estNombre(ok)) ? Math.max(0, total - ok) : null;
+    return { conforme: conforme, total: total, ecarts: ecarts };
+  }
+
+  /* Sankey : d'où vient l'argent et où il va (onglet TFT) */
+  function fluxSankey(d) {
+    var a = '2027';
+    var t = function (c) { return ligneTFT(d, c, a) || 0; };
+    var elements = [
+      { nom: 'Flux opérationnel', v: t('OT') },
+      { nom: 'Emprunts reçus', v: t('F1') },
+      { nom: 'Investissements', v: t('IT') },
+      { nom: 'Remboursements d’emprunts', v: t('F2') },
+      { nom: 'Intérêts payés', v: t('F3') },
+      { nom: 'Loyers IFRS 16', v: t('F4') + t('F5') },
+      { nom: 'Dividendes', v: t('F6') }
+    ];
+    var variation = (d.totaux.V && estNombre(d.totaux.V.v2027)) ? d.totaux.V.v2027 : t('V');
+    if (variation < 0) { elements.push({ nom: 'Baisse de la trésorerie', v: -variation }); }
+    else if (variation > 0) { elements.push({ nom: 'Hausse de la trésorerie', v: -variation }); }
+    var entrees = elements.filter(function (e) { return e.v > 0; });
+    var sorties = elements.filter(function (e) { return e.v < 0; });
+    return { entrees: entrees, sorties: sorties };
+  }
+
+  /* Réponse principale (« Atlas génère-t-elle assez de cash ? »), règles simples */
+  function reponsePrincipale(d) {
+    var fcf = kpiParCode(d, 'K03'), div = kpiParCode(d, 'K14'), dscr = kpiParCode(d, 'K13');
+    if (estNombre(fcf.v2027) && fcf.v2027 <= 0) { return 'Non : en 2027, le cash d’exploitation ne suffit pas à financer les investissements, la dette et le dividende.'; }
+    if (estNombre(div.v2027) && div.v2027 < 1) { return 'En partie : le cash finance les investissements, mais pas tout le dividende.'; }
+    if (estNombre(dscr.v2027) && dscr.v2027 < 1) { return 'En partie : le cash finance les investissements, mais pas le service de la dette.'; }
+    return 'Oui : en 2027, le cash généré finance les investissements, la dette et le dividende.';
+  }
+  function motCouverture(feu) {
+    if (feu === 'VERT') { return 'couvert'; }
+    if (feu === 'AMBRE') { return 'sous tension'; }
+    if (feu === 'ROUGE') { return 'non couvert'; }
+    return 'sans seuil';
+  }
+
+  /* Points d'attention générés si les recommandations manquent (règles écrites ici) */
+  function pointsAttention(d) {
+    var points = [];
+    var fcf = kpiParCode(d, 'K03'), lev = kpiParCode(d, 'K11'), div = kpiParCode(d, 'K14'), ccc = kpiParCode(d, 'K09');
+    if (estNombre(fcf.v2027)) {
+      points.push(fcf.v2027 <= 0
+        ? 'Le free cash-flow 2027 est négatif (' + formater(fcf.v2027, 'DH') + ') : les investissements doivent être financés par un crédit à moyen terme plutôt que par le découvert.'
+        : 'Le free cash-flow 2027 est positif (' + formater(fcf.v2027, 'DH') + ') : il peut financer une partie de la dette et du dividende.');
+    }
+    if (estNombre(lev.v2027)) {
+      points.push(lev.v2027 > d.params.PLAFOND
+        ? 'La dette nette vaut ' + formater(lev.v2027, 'fois') + ' l’EBITDA, au-dessus du plafond bancaire de ' + nombreFr(d.params.PLAFOND, 2) + ' : un plan de désendettement est à présenter à la banque.'
+        : 'La dette nette vaut ' + formater(lev.v2027, 'fois') + ' l’EBITDA, sous le plafond bancaire de ' + nombreFr(d.params.PLAFOND, 2) + '.');
+    }
+    if (estNombre(div.v2027) && div.v2027 < 1) {
+      points.push('Le dividende n’est pas couvert par le free cash-flow (couverture de ' + formater(div.v2027, 'fois') + ') : son montant est à limiter.');
+    } else if (estNombre(ccc.v2027)) {
+      points.push('Le cycle de cash est de ' + formater(ccc.v2027, 'jours') + ' : chaque jour gagné libère du cash.');
+    }
+    return points.slice(0, 3);
+  }
+
+  /* Aplatissement des données pour compter les valeurs modifiées */
+  function aplatir(objet, prefixe, sortie) {
+    if (objet === null || typeof objet !== 'object') { sortie.set(prefixe, objet); return sortie; }
+    Object.keys(objet).forEach(function (k) {
+      if (!cleAutorisee(k)) { return; }
+      aplatir(objet[k], prefixe ? prefixe + '.' + k : k, sortie);
+    });
+    return sortie;
+  }
+  function compterDifferences(ancien, nouveau) {
+    var a = aplatir(ancien, '', new Map()), b = aplatir(nouveau, '', new Map());
+    var n = 0;
+    b.forEach(function (v, k) { if (!a.has(k) || a.get(k) !== v) { n++; } });
+    a.forEach(function (v, k) { if (!b.has(k)) { n++; } });
+    return n;
+  }
+  function kpiModifies(ancien, nouveau) {
+    var codes = [];
+    nouveau.kpi.forEach(function (k) {
+      var o = kpiParCode(ancien, k.code);
+      if (!o || o.v2027 !== k.v2027 || o.v2026 !== k.v2026 || o.feu2027 !== k.feu2027 || o.feu2026 !== k.feu2026) { codes.push(k.code); }
+    });
+    return codes;
+  }
+
+  /* Empreinte SHA-256 (Web Crypto) */
+  function empreinte(octets) {
+    if (!window.crypto || !window.crypto.subtle) { return Promise.resolve(String(octets.byteLength) + ':' + Date.now()); }
+    return window.crypto.subtle.digest('SHA-256', octets).then(function (h) {
+      return Array.prototype.map.call(new Uint8Array(h), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join('');
+    });
+  }
+  function empreinteTexte(texte) { return empreinte(new TextEncoder().encode(texte).buffer); }
+
+  /* =====================================================================
+     SYNCHRONISATION · modes A (direct), B (en ligne), C (import)
+     ===================================================================== */
+  var proto = window.location.protocol;
+  var hote = window.location.hostname;
+  var enHttp = proto === 'http:' || proto === 'https:';
+  var enLocalhost = enHttp && (hote === 'localhost' || hote === '127.0.0.1' || hote === '[::1]' || hote === '::1' || /\.localhost$/.test(hote));
+  var agent = navigator.userAgent || '';
+  var appareilMobile = (navigator.userAgentData && navigator.userAgentData.mobile) || /Android|iPhone|iPad|iPod|Mobile/i.test(agent);
+  var accesDirectPossible = typeof window.showOpenFilePicker === 'function' && !appareilMobile;
+
+  var valeursPrecedentes = objetVide();
+  var etat = {
+    donnees: null,
+    empreinteDonnees: null,
+    empreinteOctets: null,
+    empreinteRejetee: null,
+    nomFichier: null,
+    heureDonnees: null,
+    mode: null,                 /* 'A' | 'B' | 'C' */
+    syncActive: true,
+    statut: 'aucun',            /* aucun | pause | lecture | ok | manuel | reconnexion | erreur */
+    raison: '',
+    derniereVerification: 0,
+    poignee: null,
+    signatureTraitee: null,
+    enLecture: false,
+    relancer: false,
+    minuteur: null,
+    dernierTic: 0,
+    alertes: [],
+    menuDeplie: new Set(),
+    derniereSource: null,
+    chargementInitial: true,
+    erreurInitiale: null
+  };
+
+  /* Préférence de l'interrupteur (seule donnée gardée dans localStorage) */
+  function lirePreference() {
+    try { var v = window.localStorage.getItem(CLE_PREFERENCE); return v === null ? true : v === '1'; } catch (e) { return true; }
+  }
+  function ecrirePreference(v) {
+    try { window.localStorage.setItem(CLE_PREFERENCE, v ? '1' : '0'); } catch (e) { /* stockage indisponible : choix non mémorisé */ }
+  }
+
+  /* IndexedDB : on garde la poignée du fichier, jamais son contenu */
+  function ouvrirBase() {
+    return new Promise(function (resoudre, rejeter) {
+      if (!window.indexedDB) { rejeter(new Error('indisponible')); return; }
+      var req;
+      try { req = window.indexedDB.open(BASE_IDB, 1); } catch (e) { rejeter(e); return; }
+      req.onupgradeneeded = function () { req.result.createObjectStore(MAGASIN_IDB); };
+      req.onsuccess = function () { resoudre(req.result); };
+      req.onerror = function () { rejeter(req.error); };
+    });
+  }
+  function idb(action, valeur) {
+    return ouvrirBase().then(function (base) {
+      return new Promise(function (resoudre, rejeter) {
+        var tx = base.transaction(MAGASIN_IDB, action === 'lire' ? 'readonly' : 'readwrite');
+        var magasin = tx.objectStore(MAGASIN_IDB);
+        var req = action === 'lire' ? magasin.get('fichier') : (action === 'ecrire' ? magasin.put(valeur, 'fichier') : magasin.delete('fichier'));
+        req.onsuccess = function () { resoudre(req.result); };
+        req.onerror = function () { rejeter(req.error); };
+        tx.oncomplete = function () { base.close(); };
+      });
+    }).catch(function () { return null; });
+  }
+
+  function intervalleCourant() {
+    if (etat.mode === 'A' && etat.poignee && etat.statut !== 'reconnexion') { return INTERVALLES.direct; }
+    if (etat.mode === 'B') { return enLocalhost ? INTERVALLES.localhost : INTERVALLES.enLigne; }
+    return 0;
+  }
+  function planifier() {
+    clearTimeout(etat.minuteur);
+    etat.minuteur = null;
+    if (!etat.syncActive) { return; }
+    var d = intervalleCourant();
+    if (!d) { return; }
+    etat.dernierTic = Date.now();
+    etat.minuteur = setTimeout(tic, d);
+  }
+  function tic() {
+    var attendu = intervalleCourant();
+    var ecoule = Date.now() - etat.dernierTic;
+    /* Sortie de veille : un écart très grand déclenche une vérification complète */
+    if (attendu && ecoule > attendu * 3 + 5000 && etat.mode === 'A') { etat.signatureTraitee = null; }
+    verifier().then(planifier, planifier);
+  }
+
+  function changerStatut(statut, raison) {
+    etat.statut = statut;
+    etat.raison = raison || '';
+    rendrePanneaux();
+  }
+  /* Appelée seulement après une vérification réussie */
+  function marquerVerifie() {
+    etat.derniereVerification = Date.now();
+    changerStatut(etat.mode === 'C' ? 'manuel' : (etat.syncActive ? 'ok' : 'pause'));
+  }
+  /* Le fichier redevient valide : l'alerte de structure disparaît */
+  function effacerAlertesStructure() {
+    var avant = etat.alertes.length;
+    etat.alertes = etat.alertes.filter(function (a) { return a.niveau !== 'rouge'; });
+    if (etat.alertes.length !== avant) { rendreAlertes(); toast('Le fichier est de nouveau valide : les données sont à jour.'); }
+  }
+
+  /* Vérification immédiate, sans lectures simultanées */
+  function verifier() {
+    if (!etat.syncActive && etat.mode !== 'C') { return Promise.resolve(); }
+    if (etat.enLecture) { etat.relancer = true; return Promise.resolve(); }
+    etat.enLecture = true;
+    var travail = etat.mode === 'A' ? verifierModeA() : (etat.mode === 'B' ? verifierModeB() : Promise.resolve());
+    return travail.catch(function (e) { traiterErreur(e); }).then(function () {
+      etat.enLecture = false;
+      if (etat.relancer) { etat.relancer = false; setTimeout(function () { verifier(); }, 60); }
+    });
+  }
+
+  function signatureDe(f) { return f.lastModified + ':' + f.size; }
+  function estErreurAcces(e) {
+    var n = e && e.name;
+    return n === 'NotFoundError' || n === 'NotAllowedError' || n === 'SecurityError' || n === 'InvalidStateError' || n === 'TypeMismatchError';
+  }
+
+  /* Mode A : API File System Access, lecture seule */
+  function verifierModeA() {
+    var p = etat.poignee;
+    if (!p) { return Promise.resolve(); }
+    return p.getFile().then(function (f) {
+      var sig = signatureDe(f);
+      if (sig === etat.signatureTraitee) { marquerVerifie(); return null; }
+      return stabiliser(p, f).then(function (stable) {
+        if (!stable) { return null; }
+        changerStatut('lecture');
+        return lireAvecReprises(p, stable);
+      });
+    }, function (e) {
+      if (estErreurAcces(e)) { passerEnReconnexion(e); return null; }
+      throw e;
+    });
+  }
+  /* Pendant l'enregistrement d'Excel : attendre 700 ms, date et taille stables */
+  function stabiliser(p, premier) {
+    var precedent = signatureDe(premier);
+    var essais = 0;
+    function boucle() {
+      return attendre(INTERVALLES.stabilisation).then(function () { return p.getFile(); }).then(function (f) {
+        var sig = signatureDe(f);
+        if (sig === precedent) { return f; }
+        precedent = sig;
+        essais++;
+        return essais > 12 ? null : boucle();
+      });
+    }
+    return boucle();
+  }
+  /* Fichier illisible (NotReadableError, fichier incomplet) : 3 reprises en 1 seconde */
+  function lireAvecReprises(p, fichierStable) {
+    var essai = 0;
+    function lire(f) {
+      controlerFichierAvantLecture(f.name, f.size);
+      return f.arrayBuffer().then(function (octets) { return traiterOctets(octets, f.name, 'A'); }).then(function () {
+        etat.signatureTraitee = signatureDe(f);
+      });
+    }
+    function tenter(f) {
+      return lire(f).catch(function (e) {
+        if (e instanceof ErreurSecurite || e instanceof ErreurStructure) { etat.signatureTraitee = signatureDe(f); throw e; }
+        if (estErreurAcces(e) && e.name !== 'NotReadableError') { throw e; }
+        essai++;
+        if (essai > 3) { throw new ErreurLecture('Le fichier n’a pas pu être lu après 3 essais : il est peut-être encore en cours d’enregistrement.'); }
+        return attendre(INTERVALLES.reprise).then(function () { return p.getFile(); }).then(tenter);
+      });
+    }
+    return tenter(fichierStable).catch(function (e) {
+      if (estErreurAcces(e)) { passerEnReconnexion(e); return; }
+      throw e;
+    });
+  }
+  function passerEnReconnexion(e) {
+    var raison = e && e.name === 'NotFoundError'
+      ? 'Le fichier a été déplacé, renommé ou supprimé. Cliquez sur « Reconnecter » ou connectez-le à nouveau.'
+      : 'Le navigateur demande à nouveau l’autorisation de lire le fichier.';
+    etat.signatureTraitee = null;
+    changerStatut('reconnexion', raison);
+  }
+
+  /* Mode B : donnees.xlsx relu à côté d'index.html */
+  function verifierModeB() {
+    return fetch('donnees.xlsx', { cache: 'no-cache', credentials: 'same-origin', redirect: 'error' }).then(function (rep) {
+      if (!rep.ok) {
+        var absent = new ErreurLecture(rep.status === 404 ? 'Le fichier donnees.xlsx est introuvable à côté d’index.html.' : 'Le fichier donnees.xlsx n’a pas pu être téléchargé.');
+        absent.absent = true;
+        throw absent;
+      }
+      var longueur = Number(rep.headers.get('content-length'));
+      if (longueur && longueur > LIMITES.tailleMax) { throw new ErreurSecurite('Le fichier dépasse la taille maximale de 10 Mo : il a été refusé.'); }
+      return rep.arrayBuffer();
+    }, function (e) {
+      if (e instanceof ErreurLecture || e instanceof ErreurSecurite) { throw e; }
+      var horsLigne = new ErreurLecture('Le fichier donnees.xlsx n’a pas pu être téléchargé.');
+      horsLigne.absent = true;
+      throw horsLigne;
+    }).then(function (octets) {
+      if (etat.statut !== 'ok') { changerStatut('lecture'); }
+      return traiterOctets(octets, 'donnees.xlsx', 'B');
+    });
+  }
+
+  /* Traitement commun : sécurité → lecture → validation → affichage */
+  function traiterOctets(octets, nom, mode) {
+    controlerOctets(octets, nom);
+    return empreinte(octets).then(function (hOctets) {
+      if (hOctets === etat.empreinteOctets && mode === etat.mode) { effacerAlertesStructure(); marquerVerifie(); return; }
+      if (hOctets === etat.empreinteRejetee) { return; }
+      var classeur = lireClasseur(octets, nom);
+      var res = extraireDonnees(classeur);
+      if (res.problemes.length) { etat.empreinteRejetee = hOctets; throw new ErreurStructure(res.problemes); }
+      etat.empreinteRejetee = null;
+      etat.empreinteOctets = hOctets;
+      return empreinteTexte(JSON.stringify(res.donnees)).then(function (hDonnees) {
+        appliquerDonnees(res.donnees, hDonnees, nom, mode);
+      });
+    });
+  }
+
+  function traiterErreur(e) {
+    var message;
+    if (e instanceof ErreurStructure) {
+      if (etat.donnees) {
+        etat.alertes = [{ niveau: 'rouge', titre: 'Le fichier modifié n’a pas été appliqué : les données précédentes restent affichées.', details: e.problemes.slice(0, 8) }];
+        changerStatut('erreur', e.problemes[0]);
+        rendreAlertes();
+      } else {
+        etat.erreurInitiale = { titre: 'Le fichier ne correspond pas au format attendu.', details: e.problemes.slice(0, 12) };
+        changerStatut('erreur', e.problemes[0]);
+        rendre();
+      }
+      return;
+    }
+    if (e instanceof ErreurSecurite || e instanceof ErreurLecture) { message = e.message; }
+    else if (e && e.name === 'NotReadableError') { message = 'Le fichier est verrouillé ou en cours d’enregistrement.'; }
+    else if (e && e.name === 'TypeError' && etat.mode === 'B') { message = 'Le fichier donnees.xlsx n’a pas pu être téléchargé.'; }
+    else { message = 'Le fichier n’a pas pu être lu.'; }
+    if (etat.donnees) {
+      changerStatut('erreur', message);
+    } else {
+      etat.erreurInitiale = { titre: message, details: [] };
+      changerStatut('erreur', message);
+      rendre();
+    }
+  }
+
+  function appliquerDonnees(d, hDonnees, nom, mode) {
+    var premier = !etat.donnees;
+    var avaitErreur = etat.alertes.some(function (a) { return a.niveau === 'rouge'; }) || !!etat.erreurInitiale;
+    etat.mode = mode;
+    etat.nomFichier = nom;
+    etat.erreurInitiale = null;
+    etat.alertes = [];
+    if (d.cellulesEnErreur > 0) {
+      etat.alertes.push({ niveau: 'orange', titre: d.cellulesEnErreur + ' cellule' + (d.cellulesEnErreur > 1 ? 's' : '') + ' en erreur (#N/A, #DIV/0!…) traitée' + (d.cellulesEnErreur > 1 ? 's' : '') + ' comme vide' + (d.cellulesEnErreur > 1 ? 's' : '') + '.', details: [] });
+    }
+    if (hDonnees === etat.empreinteDonnees && !premier) {
+      marquerVerifie();
+      if (avaitErreur) { rendreAlertes(); toast('Le fichier est de nouveau valide.'); }
+      return;
+    }
+    var ancien = etat.donnees;
+    var nbModifs = premier ? 0 : compterDifferences(ancien, d);
+    var eclats = premier ? [] : kpiModifies(ancien, d);
+    valeursPrecedentes = objetVide();
+    if (ancien) { ancien.kpi.forEach(function (k) { valeursPrecedentes[k.code] = k.v2027; }); }
+    etat.donnees = d;
+    etat.empreinteDonnees = hDonnees;
+    etat.heureDonnees = new Date();
+    etat.chargementInitial = false;
+    marquerVerifie();
+    rendre({ conserverDefilement: !premier, eclats: eclats });
+    if (premier) { toast('Données chargées : ' + nom + '.'); }
+    else { toast('Données mises à jour à ' + heureFr(etat.heureDonnees) + ' : ' + nbModifs + ' valeur' + (nbModifs > 1 ? 's' : '') + ' modifiée' + (nbModifs > 1 ? 's' : '') + '.'); }
+  }
+
+  /* --- Actions de l'utilisateur --- */
+  function connecterFichier() {
+    if (!accesDirectPossible) {
+      toast('Le suivi en direct fonctionne avec Chrome ou Edge sur ordinateur. Ici, importez à nouveau le fichier après chaque modification.');
+      ouvrirImport();
+      return;
+    }
+    window.showOpenFilePicker({
+      multiple: false,
+      excludeAcceptAllOption: false,
+      types: [{ description: 'Classeur Excel ou CSV', accept: {
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+        'application/vnd.ms-excel.sheet.macroEnabled.12': ['.xlsm'],
+        'application/vnd.ms-excel': ['.xls'],
+        'text/csv': ['.csv'] } }]
+    }).then(function (poignees) {
+      return utiliserPoignee(poignees[0]);
+    }, function (e) {
+      if (e && e.name === 'AbortError') { return; }
+      toast('Le fichier n’a pas pu être connecté. Utilisez « Importer un fichier ».');
+    });
+  }
+  function utiliserPoignee(p) {
+    if (!p || p.kind !== 'file') { return Promise.resolve(); }
+    try { controlerFichierAvantLecture(p.name); } catch (e) { traiterErreur(e); return Promise.resolve(); }
+    etat.poignee = p;
+    etat.mode = 'A';
+    etat.signatureTraitee = null;
+    etat.empreinteOctets = null;
+    etat.empreinteRejetee = null;
+    etat.derniereSource = 'A';
+    idb('ecrire', p);
+    changerStatut('lecture');
+    return forcerVerification();
+  }
+  function forcerVerification() {
+    clearTimeout(etat.minuteur);
+    var avant = etat.syncActive;
+    if (!avant && etat.mode !== 'C') {
+      /* Synchronisation coupée : une connexion explicite lit quand même le fichier une fois */
+      etat.syncActive = true;
+      return verifier().then(function () { etat.syncActive = false; changerStatut('pause'); });
+    }
+    return verifier().then(planifier);
+  }
+  function reconnecter() {
+    var p = etat.poignee;
+    if (!p) { connecterFichier(); return; }
+    var demande = typeof p.requestPermission === 'function' ? p.requestPermission({ mode: 'read' }) : Promise.resolve('granted');
+    demande.then(function (r) {
+      if (r !== 'granted') { changerStatut('reconnexion', 'L’autorisation de lecture n’a pas été accordée.'); return; }
+      etat.mode = 'A';
+      etat.signatureTraitee = null;
+      etat.empreinteOctets = null;
+      changerStatut('lecture');
+      return forcerVerification();
+    }, function () {
+      changerStatut('reconnexion', 'Le fichier n’est plus accessible. Connectez-le à nouveau.');
+    });
+  }
+  function ouvrirImport() {
+    var entree = document.getElementById('entree-fichier');
+    entree.value = '';
+    entree.click();
+  }
+  function importerFichier(fichier) {
+    if (!fichier) { return; }
+    try { controlerFichierAvantLecture(fichier.name, fichier.size); } catch (e) { traiterErreur(e); return; }
+    clearTimeout(etat.minuteur);
+    etat.mode = 'C';
+    etat.poignee = null;
+    etat.empreinteOctets = null;
+    etat.empreinteRejetee = null;
+    etat.derniereSource = 'C';
+    changerStatut('lecture');
+    fichier.arrayBuffer().then(function (octets) { return traiterOctets(octets, fichier.name, 'C'); })
+      .catch(traiterErreur);
+  }
+  function basculerSynchronisation() {
+    etat.syncActive = !etat.syncActive;
+    ecrirePreference(etat.syncActive);
+    if (!etat.syncActive) {
+      clearTimeout(etat.minuteur);
+      if (etat.statut === 'ok' || etat.statut === 'lecture') { changerStatut('pause'); } else { rendrePanneaux(); }
+      annoncer('Synchronisation désactivée');
+    } else {
+      annoncer('Synchronisation activée');
+      if (etat.statut === 'pause') { changerStatut(etat.mode ? 'lecture' : 'aucun'); }
+      /* Réactivation : vérification immédiate et rattrapage des modifications */
+      if (etat.mode === 'A') { etat.signatureTraitee = null; }
+      verifier().then(planifier);
+    }
+  }
+  function effacerDonneesLocales() {
+    idb('effacer');
+    try { window.localStorage.removeItem(CLE_PREFERENCE); } catch (e) { /* rien à effacer */ }
+    if (etat.mode === 'A') { etat.mode = enHttp ? 'B' : 'C'; }
+    etat.poignee = null;
+    clearTimeout(etat.minuteur);
+    if (etat.mode === 'B') { planifier(); }
+    rendrePanneaux();
+    toast('Données locales effacées : poignée du fichier et préférence supprimées.');
+  }
+  function reessayer() {
+    etat.erreurInitiale = null;
+    etat.empreinteRejetee = null;
+    rendre();
+    if (etat.mode === 'A' && etat.poignee) { etat.signatureTraitee = null; forcerVerification(); }
+    else if (enHttp) { etat.mode = 'B'; etat.empreinteOctets = null; forcerVerification(); }
+    else { etat.chargementInitial = false; rendre(); }
+  }
+
+  /* =====================================================================
+     AFFICHAGE
+     ===================================================================== */
+  var graphiques = [];
+  var observateur = typeof ResizeObserver === 'function' ? new ResizeObserver(function (entrees) {
+    entrees.forEach(function (e) {
+      graphiques.forEach(function (g) { if (g.dom === e.target && !g.instance.isDisposed()) { g.instance.resize(); } });
+    });
+  }) : null;
+
+  function annoncer(texte) { var a = document.getElementById('annonce'); a.textContent = ''; setTimeout(function () { a.textContent = texte; }, 30); }
+
+  function toast(texte) {
+    var zone = document.getElementById('toasts');
+    var t = el('div', { classe: 'toast verre' }, icone('valide'), el('span', { texte: texte }));
+    zone.appendChild(t);
+    while (zone.children.length > 3) { zone.removeChild(zone.firstChild); }
+    setTimeout(function () { if (t.parentNode) { t.parentNode.removeChild(t); } }, 5200);
+  }
+
+  /* ---------- Routage : #/situation · #/familles · #/famille/id · #/kpi/K01 ---------- */
+  function routeCourante() {
+    var h = window.location.hash.replace(/^#\/?/, '');
+    var p = h.split('/');
+    if (p[0] === 'familles') { return { ecran: 'familles' }; }
+    if (p[0] === 'famille' && p[1]) {
+      var f = FAMILLES.filter(function (x) { return x.id === p[1]; })[0];
+      if (f) { return { ecran: 'famille', famille: f }; }
+    }
+    if (p[0] === 'kpi' && p[1]) {
+      var code = p[1].toUpperCase();
+      if (FORMAT_ATTENDU.kpi.codes.indexOf(code) !== -1) {
+        var fam = FAMILLES.filter(function (x) { return x.kpi.indexOf(code) !== -1; })[0];
+        return { ecran: 'kpi', code: code, famille: fam };
+      }
+    }
+    return { ecran: 'situation' };
+  }
+
+  /* ---------- Menu latéral (3 niveaux) ---------- */
+  function lienMenu(href, nomIcone, texte, actif) {
+    return el('a', { classe: 'nav-lien', href: href, 'aria-current': actif ? 'page' : null, title: texte }, nomIcone ? icone(nomIcone) : null, el('span', { classe: 'menu-texte nav-sous-texte', texte: texte }));
+  }
+  function arbreFamilles(route, dansVolet) {
+    var d = etat.donnees;
+    var masque = d && !etatControles(d).conforme;
+    var liste = el('ul', { classe: 'nav-familles' });
+    FAMILLES.forEach(function (f) {
+      var feu = d && !masque ? feuFamille(d, f) : null;
+      var idSous = (dansVolet ? 'volet-' : 'menu-') + f.id;
+      var deplie = etat.menuDeplie.has(f.id);
+      var actif = route.ecran === 'famille' && route.famille.id === f.id;
+      var lien = el('a', { classe: 'nav-lien', href: '#/famille/' + f.id, 'aria-current': actif ? 'page' : null, title: f.nom },
+        el('span', { classe: 'point ' + (feu ? FEUX[feu].classe : 'neutre') }),
+        el('span', { classe: 'nav-sous-texte', texte: f.nom }),
+        el('span', { classe: 'nav-mot', texte: feu ? FEUX[feu].mot : (masque ? 'Masqué' : '') }));
+      var bouton = el('button', { classe: 'deplier', type: 'button', 'aria-expanded': deplie ? 'true' : 'false', 'aria-controls': idSous, 'aria-label': (deplie ? 'Replier ' : 'Déplier ') + f.nom,
+        surClick: function () {
+          if (etat.menuDeplie.has(f.id)) { etat.menuDeplie.delete(f.id); } else { etat.menuDeplie.add(f.id); }
+          rendreMenu();
+          if (dansVolet) { remplirVolet(); }
+          var b = document.querySelector((dansVolet ? '#volet' : '#menu-nav') + ' [aria-controls="' + idSous + '"]');
+          if (b) { b.focus(); }
+        } }, icone('chevron'));
+      var item = el('li', null, el('div', { classe: 'nav-famille-ligne' }, lien, bouton));
+      var sous = el('ul', { classe: 'nav-kpis', id: idSous, hidden: !deplie });
+      f.kpi.slice().sort(function (a, b) {
+        var ka = d && kpiParCode(d, a), kb = d && kpiParCode(d, b);
+        return (ka ? ka.ordre : 0) - (kb ? kb.ordre : 0);
+      }).forEach(function (code) {
+        var k = d && kpiParCode(d, code);
+        var feuK = k && !masque ? k.feu2027 : null;
+        var nom = code + ' · ' + (k ? k.nom : code);
+        sous.appendChild(el('li', null, el('a', { classe: 'nav-lien', href: '#/kpi/' + code, title: nom, 'aria-current': route.ecran === 'kpi' && route.code === code ? 'page' : null },
+          el('span', { classe: 'point ' + (feuK ? FEUX[feuK].classe : 'neutre') }),
+          el('span', { classe: 'nav-sous-texte', texte: nom }),
+          el('span', { classe: 'nav-mot', texte: feuK ? FEUX[feuK].mot : '' }))));
+      });
+      item.appendChild(sous);
+      liste.appendChild(item);
+    });
+    return liste;
+  }
+  function rendreMenu() {
+    var route = routeCourante();
+    var nav = document.getElementById('menu-nav');
+    var liste = el('ul', { classe: 'nav-liste' },
+      el('li', null, lienMenu('#/situation', 'situation', 'Situation TFT', route.ecran === 'situation')),
+      el('li', null, lienMenu('#/familles', 'familles', 'Les KPI par famille', route.ecran === 'familles'), arbreFamilles(route, false)));
+    nav.replaceChildren(liste);
+    /* Onglets du bas (téléphone) */
+    var onglets = document.getElementById('onglets-mobile');
+    var surFamilles = route.ecran !== 'situation';
+    onglets.replaceChildren(
+      el('a', { classe: 'onglet-mobile', href: '#/situation', 'aria-current': surFamilles ? null : 'page' }, icone('situation'), el('span', { texte: 'Situation TFT' })),
+      el('button', { classe: 'onglet-mobile', type: 'button', 'aria-current': surFamilles ? 'page' : null, 'aria-haspopup': 'dialog', surClick: ouvrirVolet }, icone('familles'), el('span', { texte: 'KPI par famille' })));
+  }
+
+  /* ---------- Volet mobile : familles et KPI ---------- */
+  function remplirVolet() {
+    var volet = document.getElementById('volet');
+    var route = routeCourante();
+    volet.replaceChildren(
+      el('div', { classe: 'volet-entete' }, el('h2', { id: 'volet-titre', texte: 'Les KPI par famille' }),
+        el('button', { classe: 'bouton bouton-discret bouton-petit', type: 'button', 'aria-label': 'Fermer le volet', surClick: fermerVolet }, icone('croix'))),
+      el('ul', { classe: 'nav-liste' }, el('li', null, lienMenu('#/familles', 'familles', 'Vue d’ensemble des familles', route.ecran === 'familles'))),
+      arbreFamilles(route, true));
+    volet.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', fermerVolet); });
+  }
+  function ouvrirVolet() {
+    remplirVolet();
+    document.getElementById('volet').hidden = false;
+    document.getElementById('voile').hidden = false;
+    var premier = document.querySelector('#volet a, #volet button');
+    if (premier) { premier.focus(); }
+  }
+  function fermerVolet() {
+    document.getElementById('volet').hidden = true;
+    document.getElementById('voile').hidden = true;
+  }
+
+  /* ---------- Panneau de synchronisation ---------- */
+  var TEXTES_MODE = { A: 'Direct', B: 'En ligne', C: 'Import' };
+  function texteStatut() {
+    var s = etat.statut;
+    if (s === 'ok') {
+      var sec = Math.max(0, Math.round((Date.now() - etat.derniereVerification) / 1000));
+      var depuis = sec < 60 ? sec + ' s' : Math.round(sec / 60) + ' min';
+      return { classe: 'vert', texte: 'Synchronisé · mis à jour il y a ' + depuis, pulse: true };
+    }
+    if (s === 'pause') { return { classe: 'neutre', texte: 'En pause' }; }
+    if (s === 'lecture') { return { classe: 'bleu', texte: 'Lecture en cours…' }; }
+    if (s === 'reconnexion') { return { classe: 'orange', texte: 'Reconnexion nécessaire' }; }
+    if (s === 'erreur') { return { classe: 'rouge', texte: etat.donnees ? 'Fichier illisible : dernières données conservées' : 'Fichier illisible' }; }
+    if (s === 'manuel') { return { classe: 'neutre', texte: 'Importé · réimportez après chaque modification' }; }
+    return { classe: 'neutre', texte: 'Aucun fichier connecté' };
+  }
+  function aideMode() {
+    if (etat.mode === 'B' && !enLocalhost) { return 'Mode en ligne : donnees.xlsx est relu toutes les 60 secondes. GitHub peut mettre jusqu’à 10 minutes pour publier une nouvelle version du fichier.'; }
+    if (etat.mode === 'B') { return 'Mode en ligne (localhost) : donnees.xlsx est relu toutes les 3 secondes.'; }
+    if (etat.mode === 'A') { return 'Mode direct : le fichier connecté est relu toutes les 2 secondes, en lecture seule.'; }
+    if (!accesDirectPossible) { return 'Le suivi en direct fonctionne avec Chrome ou Edge sur ordinateur. Ici, importez à nouveau le fichier après chaque modification.'; }
+    return 'Connectez votre fichier Excel pour un suivi en direct (lecture seule).';
+  }
+  function interrupteur(id) {
+    var b = el('button', { classe: 'interrupteur', type: 'button', role: 'switch', id: id, 'aria-checked': etat.syncActive ? 'true' : 'false', 'aria-label': 'Synchronisation' });
+    b.addEventListener('click', basculerSynchronisation);
+    return b;
+  }
+  function boutonsSync(compact) {
+    var liste = [];
+    if (etat.statut === 'reconnexion') {
+      liste.push(el('button', { classe: 'bouton bouton-petit', type: 'button', surClick: reconnecter, style: 'border-color:var(--c-orange)' }, icone('sync'), 'Reconnecter'));
+    }
+    liste.push(el('button', { classe: 'bouton bouton-petit', type: 'button', surClick: connecterFichier }, icone('lien'), 'Connecter mon fichier Excel'));
+    liste.push(el('button', { classe: 'bouton bouton-discret bouton-petit', type: 'button', surClick: ouvrirImport }, icone('importer'), 'Importer un fichier'));
+    if (!compact) { liste.push(el('button', { classe: 'bouton bouton-discret bouton-petit', type: 'button', surClick: effacerDonneesLocales }, icone('corbeille'), 'Effacer mes données')); }
+    return liste;
+  }
+  function rendrePanneaux() {
+    var st = texteStatut();
+    var heure = etat.heureDonnees ? heureFr(etat.heureDonnees) : '—';
+    var aide = aideMode();
+    /* Menu latéral (ordinateur) */
+    var panneau = document.getElementById('panneau-sync');
+    var infobulle = 'Synchronisation : ' + (etat.syncActive ? 'activée' : 'désactivée') + ' · ' + st.texte + (etat.nomFichier ? ' · ' + etat.nomFichier : '') + '. ' + aide;
+    var focusInterrupteur = document.activeElement && document.activeElement.id === 'interrupteur-menu';
+    panneau.replaceChildren(
+      el('div', { classe: 'sync-icone', title: infobulle, role: 'img', 'aria-label': infobulle }, icone('sync'), el('span', { classe: 'point ' + st.classe + (st.pulse ? ' pulse' : '') })),
+      el('div', { classe: 'sync-complet' },
+        el('div', { classe: 'sync-entete' }, el('label', { for: 'interrupteur-menu', texte: 'Synchronisation' }), interrupteur('interrupteur-menu')),
+        el('div', { classe: 'sync-etat', role: 'status' }, el('span', { classe: 'point ' + st.classe + (st.pulse ? ' pulse' : '') }), el('span', { texte: st.texte })),
+        etat.raison && (etat.statut === 'erreur' || etat.statut === 'reconnexion') ? el('p', { classe: 'sync-raison', texte: etat.raison }) : null,
+        el('dl', { classe: 'sync-infos' },
+          el('dt', { texte: 'Fichier' }), el('dd', { texte: etat.nomFichier || '—', title: etat.nomFichier || '' }),
+          el('dt', { texte: 'Mise à jour' }), el('dd', { texte: heure }),
+          el('dt', { texte: 'Mode' }), el('dd', { texte: etat.mode ? TEXTES_MODE[etat.mode] : '—', title: aide })),
+        el('p', { classe: 'sync-aide', texte: aide }),
+        el('div', { classe: 'sync-boutons' }, boutonsSync(false))));
+    if (focusInterrupteur) { document.getElementById('interrupteur-menu').focus(); }
+    /* Bande compacte (téléphone) */
+    var bande = document.getElementById('bande-mobile');
+    var focusMobile = document.activeElement && document.activeElement.id === 'interrupteur-mobile';
+    bande.replaceChildren();
+    ajouter(bande, [
+      el('div', { classe: 'bande-etat', title: infobulle }, el('span', { classe: 'point ' + st.classe + (st.pulse ? ' pulse' : '') }), el('span', { texte: st.texte + (etat.nomFichier ? ' · ' + etat.nomFichier : '') })),
+      etat.statut === 'reconnexion' ? el('button', { classe: 'bouton bouton-petit', type: 'button', surClick: reconnecter }, 'Reconnecter') : null,
+      el('button', { classe: 'bouton bouton-petit', type: 'button', surClick: accesDirectPossible ? connecterFichier : ouvrirImport, 'aria-label': accesDirectPossible ? 'Connecter mon fichier Excel' : 'Importer un fichier' }, icone(accesDirectPossible ? 'lien' : 'importer')),
+      el('span', { classe: 'visuellement-cache', id: 'libelle-mobile', texte: 'Synchronisation' }),
+      (function () { var i = interrupteur('interrupteur-mobile'); i.setAttribute('aria-labelledby', 'libelle-mobile'); i.removeAttribute('aria-label'); return i; })()]);
+    if (focusMobile) { document.getElementById('interrupteur-mobile').focus(); }
+  }
+  /* Mise à jour légère du « il y a x s », chaque seconde, sans reconstruire */
+  setInterval(function () {
+    if (etat.statut !== 'ok') { return; }
+    var st = texteStatut();
+    document.querySelectorAll('.sync-etat span:last-child').forEach(function (n) { n.textContent = st.texte; });
+    document.querySelectorAll('.bande-etat span:last-child').forEach(function (n) { n.textContent = st.texte + (etat.nomFichier ? ' · ' + etat.nomFichier : ''); });
+  }, 1000);
+
+  /* ---------- Alertes (structure invalide, cellules en erreur) ---------- */
+  function rendreAlertes() {
+    var zone = document.getElementById('alertes');
+    zone.replaceChildren();
+    etat.alertes.forEach(function (a, i) {
+      zone.appendChild(el('div', { classe: 'alerte verre ' + (a.niveau === 'rouge' ? 'rouge' : ''), role: 'alert' },
+        icone('attention'),
+        el('div', null, el('p', { texte: a.titre }), a.details.length ? el('ul', null, a.details.map(function (t) { return el('li', { texte: t }); })) : null),
+        el('button', { classe: 'bouton bouton-discret bouton-petit', type: 'button', 'aria-label': 'Fermer l’alerte', surClick: function () { etat.alertes.splice(i, 1); rendreAlertes(); } }, icone('croix'))));
+    });
+  }
+
+  /* ---------- Fil d'Ariane ---------- */
+  function rendreAriane(route) {
+    var nav = document.getElementById('ariane');
+    var etapes = [{ texte: 'Situation TFT', href: '#/situation' }];
+    if (route.ecran !== 'situation') { etapes.push({ texte: 'Les KPI par famille', href: '#/familles' }); }
+    if (route.famille) { etapes.push({ texte: route.famille.nom, href: '#/famille/' + route.famille.id }); }
+    if (route.ecran === 'kpi') {
+      var k = etat.donnees && kpiParCode(etat.donnees, route.code);
+      etapes.push({ texte: route.code + (k ? ' · ' + k.nom : ''), href: '#/kpi/' + route.code });
+    }
+    var ol = el('ol');
+    etapes.forEach(function (e, i) {
+      var dernier = i === etapes.length - 1;
+      ol.appendChild(el('li', null, dernier ? el('span', { 'aria-current': 'page', texte: e.texte }) : el('a', { href: e.href, texte: e.texte })));
+    });
+    nav.replaceChildren(ol);
+  }
+
+  /* ---------- Composants ---------- */
+  function infobulle(texte, aDroite) {
+    return el('button', { classe: 'info' + (aDroite ? ' a-droite' : ''), type: 'button', 'data-infobulle': texte, 'aria-label': texte }, icone('info'));
+  }
+  function sparkline(v2026, v2027) {
+    var points = [];
+    if (estNombre(v2026)) { points.push(v2026); }
+    if (estNombre(v2027)) { points.push(v2027); }
+    if (!points.length) { return null; }
+    var l = 160, h = 36, m = 4;
+    var min = Math.min.apply(null, points), max = Math.max.apply(null, points);
+    var y = function (v) { return max === min ? h / 2 : m + (1 - (v - min) / (max - min)) * (h - 2 * m); };
+    var x = function (i) { return points.length === 1 ? l - m : m + i * (l - 2 * m) / (points.length - 1); };
+    var s = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('viewBox', '0 0 ' + l + ' ' + h);
+    s.setAttribute('class', 'sparkline');
+    s.setAttribute('aria-hidden', 'true');
+    if (points.length > 1) {
+      var ligne = document.createElementNS(SVGNS, 'polyline');
+      ligne.setAttribute('points', points.map(function (v, i) { return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' '));
+      ligne.setAttribute('fill', 'none');
+      ligne.setAttribute('stroke', '#E0AE28');
+      ligne.setAttribute('stroke-width', '1.25');
+      ligne.setAttribute('stroke-linecap', 'round');
+      s.appendChild(ligne);
+    }
+    var point = document.createElementNS(SVGNS, 'circle');
+    point.setAttribute('cx', x(points.length - 1).toFixed(1));
+    point.setAttribute('cy', y(points[points.length - 1]).toFixed(1));
+    point.setAttribute('r', '3');
+    point.setAttribute('fill', '#E0AE28');
+    s.appendChild(point);
+    return s;
+  }
+  /* Chiffres qui montent (sauf si « réduire les animations ») */
+  function animerChiffre(noeud, cible, unite, depart) {
+    var final = decouper(cible, unite).chiffre;
+    if (!estNombre(cible) || reduireAnimations.matches) { noeud.textContent = final; return; }
+    var origine = estNombre(depart) ? depart : 0;
+    if (origine === cible) { noeud.textContent = final; return; }
+    var debut = performance.now(), duree = 900;
+    function etape(t) {
+      var p = Math.min(1, (t - debut) / duree);
+      var e = 1 - Math.pow(1 - p, 3);
+      noeud.textContent = p < 1 ? decouper(origine + (cible - origine) * e, unite).chiffre : final;
+      if (p < 1) { requestAnimationFrame(etape); }
+    }
+    noeud.textContent = decouper(origine, unite).chiffre;
+    requestAnimationFrame(etape);
+  }
+
+  function carteKPI(k, options) {
+    var o = options || {};
+    var dec = decouper(k.v2027, k.unite);
+    var chiffre = el('span', { classe: 'chiffre', texte: dec.chiffre });
+    var lien = o.lien !== false;
+    var carte = el(lien ? 'a' : 'article', { classe: 'carte-kpi verre', href: lien ? '#/kpi/' + k.code : null, 'data-kpi': k.code, 'aria-label': lien ? k.code + ' ' + k.nom + ' : ' + formater(k.v2027, k.unite) + ', feu ' + FEUX[k.feu2027].mot : null },
+      el('div', { classe: 'carte-kpi-haut' },
+        el('div', { classe: 'carte-kpi-nom' }, el('span', { classe: 'carte-kpi-code', texte: k.code }), el('span', { texte: k.nom })),
+        pastille(k.feu2027)),
+      el('div', { classe: 'valeur-cle' }, chiffre, dec.unite ? el('span', { classe: 'unite', texte: dec.unite }) : null),
+      sparkline(k.v2026, k.v2027),
+      el('div', { classe: 'carte-kpi-bas' },
+        el('div', { classe: 'comparaison' },
+          el('span', null, '2026 : ', el('span', { classe: 'chiffre', texte: formater(k.v2026, k.unite) })),
+          el('span', null, 'Variation : ', el('span', { classe: 'variation', texte: formaterVariation(k.variation, k.unite) }))),
+        el('span', { classe: 'legende', texte: 'Formule : ' + FORMULES[k.code] })));
+    if (o.eclat) { carte.classList.add('eclat'); setTimeout(function () { carte.classList.remove('eclat'); }, INTERVALLES.eclat); }
+    if (o.animer) { animerChiffre(chiffre, k.v2027, k.unite, o.depuis ? valeursPrecedentes[k.code] : null); }
+    if (!lien) {
+      carte.querySelector('.carte-kpi-nom').appendChild(infobulle('Formule : ' + FORMULES[k.code]));
+    }
+    return carte;
+  }
+
+  function carteFlux(code, titre, nomIcone, d) {
+    var t = d.totaux[code];
+    var dec = decouper(t.v2027, 'DH');
+    return el('article', { classe: 'carte-flux verre' },
+      el('div', { classe: 'titre-flux' }, el('span', { texte: titre }), el('span', { style: 'display:inline-flex;gap:6px;align-items:center' }, icone(nomIcone), infobulle('Formule : ' + FORMULES[code], true))),
+      el('div', null, el('span', { classe: 'chiffre', texte: dec.chiffre }), el('span', { classe: 'unite', texte: dec.unite })),
+      el('p', { classe: 'legende' }, '2026 : ', el('span', { classe: 'chiffre', style: 'color:var(--c-principale-douce)', texte: formater(t.v2026, 'DH') })));
+  }
+
+  function enteteVue(surtitre, titre, sousTexte, extra) {
+    return el('header', { classe: 'entete-vue' },
+      el('p', { classe: 'surtitre', texte: surtitre }),
+      el('h1', { tabindex: '-1', texte: titre }),
+      sousTexte ? el('p', { classe: 'message-principal', texte: sousTexte }) : null,
+      extra || null);
+  }
+  function figure(titre, sousTitre, source, classeGraphique, construireOption, description) {
+    var zone = el('div', { classe: 'graphique ' + (classeGraphique || ''), role: 'img', 'aria-label': description || titre });
+    var fig = el('figure', { classe: 'carte-graphique verre', style: 'margin:0' },
+      el('figcaption', null, el('h2', { texte: titre }), sousTitre ? el('p', { classe: 'legende', texte: sousTitre }) : null),
+      zone,
+      source ? el('p', { classe: 'source', texte: source }) : null);
+    aDessiner.push({ dom: zone, option: construireOption });
+    return fig;
+  }
+
+  /* ---------- Écran « Situation TFT » ---------- */
+  function vueSituation(d, options) {
+    var vue = [];
+    var k = function (c) { return kpiParCode(d, c); };
+    var k03 = k('K03'), k13 = k('K13'), k14 = k('K14');
+    vue.push(enteteVue('Atlas Distribution SA · Casablanca · TFT IAS 7 · exercice 2027 face à 2026 · en milliers de dirhams',
+      reponsePrincipale(d),
+      d.message || ('En 2027, l’exploitation a généré ' + formater(d.totaux.OT.v2027, 'DH') + ' de cash ; les investissements en ont consommé ' + formater(-d.totaux.IT.v2027, 'DH') + ' ; le financement a apporté ' + formater(d.totaux.FT.v2027, 'DH') + '.'),
+      el('div', { classe: 'reponses' },
+        el('span', { classe: 'reponse' }, pastille(k03.feu2027), 'Investir : ' + motCouverture(k03.feu2027) + ' (free cash-flow ' + formater(k03.v2027, k03.unite) + ')'),
+        el('span', { classe: 'reponse' }, pastille(k13.feu2027), 'Rembourser la dette : ' + motCouverture(k13.feu2027) + ' (' + formater(k13.v2027, k13.unite) + ')'),
+        el('span', { classe: 'reponse' }, pastille(k14.feu2027), 'Payer les actionnaires : ' + motCouverture(k14.feu2027) + ' (' + formater(k14.v2027, k14.unite) + ')'))));
+
+    /* Les 3 flux, la variation, l'ouverture et la clôture */
+    var t0 = d.totaux.T0, t1 = d.totaux.T1;
+    vue.push(el('section', { classe: 'section', 'aria-labelledby': 'titre-flux' },
+      el('div', { classe: 'section-entete' }, el('h2', { id: 'titre-flux', texte: 'Les trois flux de trésorerie' })),
+      el('div', { classe: 'grille-4' },
+        carteFlux('OT', 'Flux opérationnel (OT)', 'entree', d),
+        carteFlux('IT', 'Flux d’investissement (IT)', 'sortie', d),
+        carteFlux('FT', 'Flux de financement (FT)', 'balance', d),
+        carteFlux('V', 'Variation de la trésorerie (V)', 'cycle', d)),
+      el('article', { classe: 'carte-flux verre' },
+        el('div', { classe: 'titre-flux' }, el('span', { texte: 'Trésorerie nette : ouverture (T0) → clôture (T1)' }), icone('tresor')),
+        el('div', null,
+          el('span', { classe: 'chiffre', texte: kmad(t0.v2027) }), el('span', { classe: 'unite', texte: 'k MAD' }),
+          el('span', { classe: 'unite', style: 'margin:0 16px;font-size:28px', texte: '→' }),
+          el('span', { classe: 'chiffre', texte: kmad(t1.v2027) }), el('span', { classe: 'unite', texte: 'k MAD' })),
+        el('p', { classe: 'legende', texte: '2026 : ' + formater(t0.v2026, 'DH') + ' → ' + formater(t1.v2026, 'DH') }))));
+
+    /* Les 6 cartes de l'onglet DASHBOARD */
+    vue.push(el('section', { classe: 'section', 'aria-labelledby': 'titre-cartes' },
+      el('div', { classe: 'section-entete' }, el('h2', { id: 'titre-cartes', texte: 'Les six indicateurs clés' }), el('p', { classe: 'legende', texte: 'Cliquez sur une carte pour ouvrir sa fiche.' })),
+      el('div', { classe: 'grille-2' }, CARTES_SITUATION.map(function (c) {
+        return carteKPI(k(c), { eclat: options.eclats.indexOf(c) !== -1, animer: options.animer, depuis: options.depuis });
+      }))));
+
+    /* Les flowcharts */
+    var cascade = d.cascade;
+    vue.push(el('section', { classe: 'section', 'aria-labelledby': 'titre-graph' },
+      el('div', { classe: 'section-entete' }, el('h2', { id: 'titre-graph', texte: 'Le chemin du cash en 2027' })),
+      figure('Cascade de la trésorerie nette', 'De la trésorerie nette 2026 à la trésorerie nette 2027 · entrées en or, sorties en grenat, totaux en blanc', 'Source : onglet KPI, section 4 (« Cascade »).', 'haut', optionCascade,
+        'Cascade : ' + cascade.map(function (c) { return c.libelle + ' ' + formater((c.fin || 0) - (c.debut || 0), 'DH'); }).join(', ')),
+      figure('D’où vient l’argent, où il va', 'Sankey des flux 2027', 'Source : onglet TFT (lignes OT, IT, F1 à F6, V).', 'haut', optionSankey, 'Sankey des sources et des emplois de trésorerie 2027'),
+      el('figure', { classe: 'carte-graphique verre', style: 'margin:0' },
+        el('figcaption', null, el('h2', { texte: 'Trois jauges face à leurs repères' }), el('p', { classe: 'legende', texte: 'Conversion en cash, dette nette ÷ EBITDA, couverture de la dette (2027)' })),
+        el('div', { classe: 'jauges' }, d.jauges.map(function (j, i) {
+          var zone = el('div', { classe: 'graphique jauge', role: 'img', 'aria-label': j.libelle + ' : ' + nombreFr(j.valeur, 2) + ', ' + texteRepere(d, j) });
+          aDessiner.push({ dom: zone, option: function () { return optionJauge(d, j); } });
+          return el('div', null, zone, el('p', { classe: 'jauge-legende', texte: texteRepere(d, j) }));
+        })),
+        el('p', { classe: 'source', texte: 'Source : onglet KPI, section 4 (« Jauge ») et paramètres PARAM_MAX_… et PARAM_CIBLE_…, PARAM_PLAFOND.' })),
+      figure('Entonnoir du cash 2027', 'EBITDA → flux opérationnel → après loyers → après service des emprunts', 'Source : onglet KPI, section 4 (« Entonnoir »).', '', optionEntonnoir,
+        'Entonnoir : ' + d.entonnoir.map(function (e) { return e.libelle + ' ' + formater(e.valeur, 'DH'); }).join(', '))));
+
+    /* Les 3 recommandations au DG, mot pour mot */
+    var recos = d.recommandations.length ? d.recommandations : pointsAttention(d);
+    var titreRecos = d.recommandations.length ? 'Les trois recommandations au DG' : 'Points d’attention';
+    vue.push(el('section', { classe: 'section', 'aria-labelledby': 'titre-recos' },
+      el('div', { classe: 'section-entete' }, el('h2', { id: 'titre-recos', texte: titreRecos }),
+        el('p', { classe: 'legende', texte: d.recommandations.length ? 'Recopiées de l’onglet KPI, section 5.' : 'Les recommandations manquent dans le fichier : points générés à partir des chiffres.' })),
+      el('ol', { classe: 'recos' }, recos.map(function (texte, i) {
+        var m = /^\s*([1-9])\s*[.)]\s*/.exec(texte);
+        return el('li', { classe: 'reco verre' }, el('span', { classe: 'reco-num', 'aria-hidden': 'true', texte: m ? m[1] : String(i + 1) }), el('p', { texte: m ? texte.slice(m[0].length) : texte }));
+      })),
+      d.avertissement ? el('p', { classe: 'legende', texte: d.avertissement }) : null));
+
+    /* Le tableau premium du TFT */
+    vue.push(tableauTFT(d));
+
+    /* Contrôle de cohérence (calcul indépendant des 14 KPI) */
+    var coh = verifierCoherence(d);
+    var etatCtl = etatControles(d);
+    vue.push(el('p', { classe: 'legende' },
+      'Contrôles du fichier : ' + (estNombre(etatCtl.total) ? (etatCtl.total - etatCtl.ecarts) + ' sur ' + etatCtl.total + ' conformes · ' : '') + 'statut ' + d.controles.statut + '. ',
+      coh.ecarts.length ? 'Recalcul des KPI : écart sur ' + coh.ecarts.join(', ') + ' (les valeurs du fichier sont affichées).' :
+        'Recalcul indépendant des 14 KPI à partir du TFT et des bilans IFRS : identique au fichier' + (coh.nonVerifiables.length ? ' (non vérifiable : ' + coh.nonVerifiables.join(', ') + ')' : '') + '.'));
+    return vue;
+  }
+
+  function tableauTFT(d) {
+    var corps = el('tbody');
+    d.tft.forEach(function (l) {
+      if (l.type === 'titre') {
+        corps.appendChild(el('tr', { classe: 'titre' }, el('td', { colspan: '4', texte: l.libelle })));
+        return;
+      }
+      corps.appendChild(el('tr', { classe: l.type === 'total' ? 'total' : (l.type === 'sous-total' ? 'sous-total' : '') },
+        el('td', { classe: 'code', texte: l.code }),
+        el('td', { classe: l.niveau ? 'niveau-1' : '', texte: l.libelle }),
+        el('td', { classe: 'montant', texte: kmadFixe(l.v2027) }),
+        el('td', { classe: 'montant', texte: kmadFixe(l.v2026) })));
+    });
+    return el('section', { classe: 'carte-tableau verre', 'aria-labelledby': 'titre-tft' },
+      el('div', { classe: 'section-entete' },
+        el('div', null, el('h2', { id: 'titre-tft', texte: 'Tableau des flux de trésorerie' }), el('p', { classe: 'legende', texte: 'Méthode indirecte (IAS 7 modifiée par IFRS 18) · lignes O1 à T1 · en milliers de dirhams (k MAD)' })),
+        el('button', { classe: 'bouton bouton-principal', type: 'button', surClick: function () { exporterTFT(d); } }, icone('exporter'), 'Exporter le TFT (Excel)')),
+      el('div', { classe: 'tableau-defile' },
+        el('table', { classe: 'tft' },
+          el('caption', { texte: 'TFT d’Atlas Distribution SA, 2027 et 2026, en k MAD. Les totaux OT, IT, FT, V, T0 et T1 sont en gras.' }),
+          el('thead', null, el('tr', null, el('th', { scope: 'col', texte: 'Code' }), el('th', { scope: 'col', texte: 'Libellé' }), el('th', { scope: 'col', classe: 'montant', texte: '2027' }), el('th', { scope: 'col', classe: 'montant', texte: '2026' }))),
+          corps)));
+  }
+
+  /* Export Excel du TFT, cellules neutralisées contre les formules piégées */
+  function exporterTFT(d) {
+    try {
+      var lignes = [[neutraliserCellule('ATLAS DISTRIBUTION SA · TFT IAS 7 · en milliers de dirhams (k MAD)')], [], ['Code', 'Libellé', '2027 (k MAD)', '2026 (k MAD)']];
+      d.tft.forEach(function (l) {
+        var arrondir = function (v) { return estNombre(v) ? Math.round(v) / 1000 : null; };
+        lignes.push([neutraliserCellule(l.code), neutraliserCellule(l.libelle), l.type === 'titre' ? null : arrondir(l.v2027), l.type === 'titre' ? null : arrondir(l.v2026)]);
+      });
+      var feuille = XLSX.utils.aoa_to_sheet(lignes);
+      feuille['!cols'] = [{ wch: 8 }, { wch: 70 }, { wch: 16 }, { wch: 16 }];
+      var classeur = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(classeur, feuille, 'TFT');
+      XLSX.writeFile(classeur, 'TFT-Atlas-2027-kMAD.xlsx', { compression: true });
+      toast('Export terminé : TFT-Atlas-2027-kMAD.xlsx.');
+    } catch (e) {
+      toast('L’export n’a pas pu être créé. Réessayez.');
+    }
+  }
+
+  /* ---------- Écran « Les KPI par famille » ---------- */
+  function vueFamilles(d, options) {
+    return [
+      enteteVue('Les 14 KPI de l’onglet KPI, rangés en 5 familles', 'Les KPI par famille', 'Chaque famille prend le feu le plus sévère de ses KPI (feux 2027 lus dans l’onglet KPI).'),
+      figure('Radar des six axes', 'Score 2027 face à 2026 et à la cible (score de 0 à 100)', 'Source : onglet KPI, section 4 (« Radar »).', 'haut', optionRadar,
+        'Radar : ' + d.radar.map(function (r) { return r.libelle + ' ' + r.s2027 + ' en 2027, ' + r.s2026 + ' en 2026'; }).join(', ')),
+      el('div', { classe: 'grille-2' }, FAMILLES.map(function (f) {
+        var feu = feuFamille(d, f);
+        var kpis = kpiDeFamille(d, f);
+        return el('a', { classe: 'carte-famille verre', href: '#/famille/' + f.id, 'aria-label': f.nom + ', ' + kpis.length + ' KPI, feu ' + FEUX[feu].mot },
+          el('div', { classe: 'carte-famille-haut' }, el('span', { style: 'display:inline-flex;gap:12px;align-items:center' }, icone(f.icone), el('h2', { texte: f.nom })), pastille(feu)),
+          el('p', { classe: 'legende', texte: kpis.length + ' KPI' }),
+          el('ul', { classe: 'liste-kpi-famille' }, kpis.map(function (k) {
+            return el('li', { 'data-kpi': k.code, classe: options.eclats.indexOf(k.code) !== -1 ? 'eclat' : null },
+              el('span', { style: 'min-width:0' }, el('span', { classe: 'carte-kpi-code', texte: k.code + ' ' }), k.nom),
+              el('span', { style: 'display:inline-flex;gap:8px;align-items:center' }, el('span', { classe: 'chiffre', texte: formater(k.v2027, k.unite) }), pastille(k.feu2027)));
+          })));
+      }))
+    ];
+  }
+
+  /* ---------- Page d'une famille ---------- */
+  function vueFamille(d, f, options) {
+    var feu = feuFamille(d, f);
+    var vue = [enteteVue('Famille de KPI · ' + kpiDeFamille(d, f).length + ' KPI', f.nom, null, el('div', { classe: 'reponses' }, el('span', { classe: 'reponse' }, 'Feu de la famille : ', pastille(feu))))];
+    vue.push(el('div', { classe: 'grille-2' }, kpiDeFamille(d, f).map(function (k) {
+      return carteKPI(k, { eclat: options.eclats.indexOf(k.code) !== -1, animer: options.animer, depuis: options.depuis });
+    })));
+    if (f.id === 'bfr') {
+      vue.push(figure('Délais du cycle de cash face au seuil vert', 'Délai clients, délai stocks et délai fournisseurs en 2027 (en jours)', 'Source : onglet KPI, section 5 (« Poste du cycle de cash »).', '', optionBullet,
+        'Bullet chart : ' + d.bullet.map(function (b) { return 'délai ' + b.libelle + ' ' + nombreFr(b.valeur, 1) + ' jours pour un seuil vert de ' + nombreFr(b.seuil, 0); }).join(', ')));
+    }
+    return vue;
+  }
+
+  /* ---------- Page d'un KPI ---------- */
+  function vueKPI(d, code, options) {
+    var k = kpiParCode(d, code);
+    var dec = decouper(k.v2027, k.unite);
+    var chiffre = el('span', { classe: 'chiffre', texte: dec.chiffre });
+    if (options.animer) { animerChiffre(chiffre, k.v2027, k.unite, options.depuis ? valeursPrecedentes[k.code] : null); }
+    var carte = el('article', { classe: 'carte-kpi verre', 'data-kpi': k.code },
+      el('div', { classe: 'carte-kpi-haut' }, el('div', { classe: 'carte-kpi-nom' }, el('span', { texte: 'Valeur 2027' }), infobulle('Formule : ' + FORMULES[k.code])),
+        el('div', { classe: 'reponses' }, pastille(k.feu2027, '2027 :'), pastille(k.feu2026, '2026 :'))),
+      el('div', { classe: 'valeur-cle' }, chiffre, dec.unite ? el('span', { classe: 'unite', texte: dec.unite }) : null),
+      sparkline(k.v2026, k.v2027),
+      el('div', { classe: 'comparaison' },
+        el('span', null, '2026 : ', el('span', { classe: 'chiffre', texte: formater(k.v2026, k.unite) })),
+        el('span', null, 'Variation : ', el('span', { classe: 'variation', texte: formaterVariation(k.variation, k.unite) }))));
+    if (options.eclats.indexOf(k.code) !== -1) { carte.classList.add('eclat'); setTimeout(function () { carte.classList.remove('eclat'); }, INTERVALLES.eclat); }
+    var seuils = k.feu2027 === 'AUCUN' && !/\d/.test(k.seuilVert)
+      ? el('p', { texte: 'Sans seuil : ce KPI n’a pas de feu dans le fichier.' })
+      : el('div', { classe: 'seuils' },
+        el('span', { classe: 'pastille vert' }, icone('valide'), 'Vert : ' + k.seuilVert),
+        el('span', { classe: 'pastille orange' }, icone('attention'), 'Orange : ' + k.seuilAmbre),
+        el('span', { classe: 'pastille rouge' }, icone('croix'), 'Rouge : ' + k.seuilRouge));
+    return [
+      enteteVue(k.code + ' · ' + (options.famille ? options.famille.nom : ''), k.nom, null),
+      carte,
+      el('section', { classe: 'dictionnaire verre', 'aria-labelledby': 'titre-dico' },
+        el('h2', { id: 'titre-dico', texte: 'Le dictionnaire du KPI' }),
+        el('dl', null,
+          el('dt', { texte: 'Définition' }), el('dd', { texte: k.definition }),
+          el('dt', { texte: 'Formule' }), el('dd', { texte: FORMULES[k.code] }),
+          el('dt', { texte: 'Unité' }), el('dd', { texte: k.unite + (typeUnite(k.unite) === 'montant' ? ' (affiché en milliers de dirhams, k MAD)' : '') }),
+          el('dt', { texte: 'Seuils' }), el('dd', null, seuils),
+          el('dt', { texte: 'Pourquoi il compte' }), el('dd', { texte: k.pourquoi })),
+        el('p', { classe: 'source', texte: 'Source : onglet KPI, sections 1 et 2 (dictionnaire recopié mot pour mot) · nom défini ' + k.nomDefini + '_2027 et _2026.' }))
+    ];
+  }
+
+  /* ---------- États : chargement, vide, erreur, disjoncteur ---------- */
+  function vueChargement() {
+    return [
+      el('div', { classe: 'squelette', style: 'height:140px', 'aria-hidden': 'true' }),
+      el('div', { classe: 'grille-4', 'aria-hidden': 'true' }, [1, 2, 3, 4].map(function () { return el('div', { classe: 'squelette', style: 'height:130px' }); })),
+      el('div', { classe: 'grille-2', 'aria-hidden': 'true' }, [1, 2, 3, 4].map(function () { return el('div', { classe: 'squelette', style: 'height:260px' }); })),
+      el('p', { classe: 'visuellement-cache', texte: 'Chargement des données en cours…' })
+    ];
+  }
+  function vueVide() {
+    var zone = el('div', { classe: 'zone-depot-locale' }, 'Glissez-déposez votre fichier Excel ici (.xlsx, .xlsm, .xls ou .csv, 10 Mo maximum)');
+    return [el('section', { classe: 'etat verre' },
+      icone('fichier', 'grande-icone'),
+      el('h1', { tabindex: '-1', texte: 'Connecter mon fichier Excel' }),
+      el('p', { texte: 'Aucune donnée n’est encore chargée. Connectez le fichier CORRIGE-TFT-IAS7-ATLAS-2027 (ou donnees.xlsx) : il est lu dans votre navigateur, en lecture seule, et rien n’est envoyé sur Internet.' }),
+      !accesDirectPossible ? el('p', { classe: 'legende', texte: 'Le suivi en direct fonctionne avec Chrome ou Edge sur ordinateur. Ici, importez à nouveau le fichier après chaque modification.' }) : null,
+      zone,
+      el('div', { classe: 'actions' },
+        el('button', { classe: 'bouton bouton-principal', type: 'button', surClick: connecterFichier }, icone('lien'), 'Connecter mon fichier Excel'),
+        el('button', { classe: 'bouton', type: 'button', surClick: ouvrirImport }, icone('importer'), 'Importer un fichier')))];
+  }
+  function vueErreur(err) {
+    return [el('section', { classe: 'etat verre', role: 'alert' },
+      icone('attention', 'grande-icone'),
+      el('h1', { tabindex: '-1', texte: 'Les données n’ont pas pu être affichées' }),
+      el('p', { texte: err.titre }),
+      err.details.length ? el('ul', null, err.details.map(function (t) { return el('li', { texte: t }); })) : null,
+      el('div', { classe: 'actions' },
+        el('button', { classe: 'bouton bouton-principal', type: 'button', surClick: reessayer }, icone('reessayer'), 'Réessayer'),
+        el('button', { classe: 'bouton', type: 'button', surClick: connecterFichier }, icone('lien'), 'Connecter mon fichier Excel'),
+        el('button', { classe: 'bouton bouton-discret', type: 'button', surClick: ouvrirImport }, icone('importer'), 'Importer un fichier')))];
+  }
+  function vueDisjoncteur(d) {
+    var c = etatControles(d);
+    var texte = estNombre(c.ecarts) && estNombre(c.total) ? 'Données non fiables : ' + c.ecarts + ' contrôle' + (c.ecarts > 1 ? 's' : '') + ' en écart sur ' + c.total : 'Données non fiables : des contrôles sont en écart';
+    return [el('section', { classe: 'etat verre disjoncteur', role: 'alert' },
+      icone('attention', 'grande-icone'),
+      el('h1', { tabindex: '-1', texte: texte }),
+      el('p', { texte: 'Le statut global de l’onglet CONTROLES (STATUT_GLOBAL) vaut « ' + d.controles.statut + ' » au lieu de « CONFORME ». Les chiffres sont masqués jusqu’à la correction du fichier.' }),
+      el('p', { classe: 'masque', 'aria-hidden': 'true', texte: '••• ••• •••' }),
+      el('p', { classe: 'legende', texte: 'Corrigez le fichier dans Excel puis enregistrez (Ctrl + S) : l’application se mettra à jour toute seule si la synchronisation est activée.' }))];
+  }
+
+  /* ---------- Rendu principal (sans clignotement, défilement conservé) ---------- */
+  var aDessiner = [];
+  var dernierEcran = null;
+  function rendre(options) {
+    var o = options || {};
+    var route = routeCourante();
+    var cleEcran = JSON.stringify([route.ecran, route.famille && route.famille.id, route.code]);
+    var memeEcran = cleEcran === dernierEcran;
+    var defilement = window.scrollY;
+    graphiques.forEach(function (g) { if (observateur) { observateur.unobserve(g.dom); } if (!g.instance.isDisposed()) { g.instance.dispose(); } });
+    graphiques = [];
+    aDessiner = [];
+    var contenu;
+    var d = etat.donnees;
+    var opts = { eclats: o.eclats || [], animer: !memeEcran || (o.eclats && o.eclats.length > 0), depuis: memeEcran, famille: route.famille };
+    if (!d && etat.erreurInitiale) { contenu = vueErreur(etat.erreurInitiale); }
+    else if (!d && etat.chargementInitial) { contenu = vueChargement(); }
+    else if (!d) { contenu = vueVide(); }
+    else if (!etatControles(d).conforme) { contenu = vueDisjoncteur(d); }
+    else if (route.ecran === 'familles') { contenu = vueFamilles(d, opts); }
+    else if (route.ecran === 'famille') { contenu = vueFamille(d, route.famille, opts); }
+    else if (route.ecran === 'kpi') { contenu = vueKPI(d, route.code, opts); }
+    else { contenu = vueSituation(d, opts); }
+    var vue = document.getElementById('vue');
+    vue.replaceChildren();
+    ajouter(vue, contenu);
+    rendreMenu();
+    rendreAriane(route);
+    rendreAlertes();
+    rendrePanneaux();
+    dessinerGraphiques();
+    if (memeEcran && o.conserverDefilement) { window.scrollTo(0, defilement); }
+    if (!memeEcran && dernierEcran !== null && o.navigation) {
+      window.scrollTo(0, 0);
+      var h1 = vue.querySelector('h1');
+      if (h1) { h1.focus({ preventScroll: true }); }
+    }
+    dernierEcran = cleEcran;
+    var titres = { situation: 'Situation TFT', familles: 'Les KPI par famille', famille: route.famille ? route.famille.nom : '', kpi: route.code || '' };
+    document.title = 'Atlas · ' + titres[route.ecran] + ' · TFT 2027';
+  }
+
+  /* =====================================================================
+     GRAPHIQUES (Apache ECharts, rendu canvas, infobulles en texte brut)
+     ===================================================================== */
+  var OR = '#E0AE28', GRENAT = '#A3263B', BLANC = '#FFFFFF', GRENAT_TEXTE = '#E06A7E';
+  function baseGraphique() {
+    return {
+      backgroundColor: 'transparent',
+      animation: !reduireAnimations.matches,
+      animationDuration: 900,
+      animationEasing: 'cubicOut',
+      textStyle: { fontFamily: 'Inter, system-ui, sans-serif', color: OR, fontWeight: 300 },
+      tooltip: { renderMode: 'richText', backgroundColor: '#0B0B0B', borderColor: 'rgba(255,255,255,0.18)', textStyle: { color: BLANC, fontFamily: 'Inter, sans-serif' } },
+      aria: { enabled: false }
+    };
+  }
+  function fusion(a, b) { Object.keys(b).forEach(function (k) { a[k] = b[k]; }); return a; }
+  function dessinerGraphiques() {
+    if (typeof echarts === 'undefined') { return; }
+    aDessiner.forEach(function (g) {
+      try {
+        var instance = echarts.init(g.dom, null, { renderer: 'canvas' });
+        instance.setOption(fusion(baseGraphique(), g.option(etat.donnees)));
+        graphiques.push({ dom: g.dom, instance: instance });
+        if (observateur) { observateur.observe(g.dom); }
+      } catch (e) {
+        g.dom.replaceChildren(el('p', { classe: 'legende', texte: 'Ce graphique n’a pas pu être dessiné.' }));
+      }
+    });
+  }
+  var petit = function () { return ecranMobile.matches; };
+
+  /* Cascade : trésorerie nette 2026 → flux → trésorerie nette 2027 */
+  function optionCascade(d) {
+    var lignes = d.cascade;
+    var dernier = lignes.length - 1;
+    var cat = lignes.map(function (l) { return l.libelle; });
+    var k = function (v) { return estNombre(v) ? v / 1000 : 0; };
+    var basePos = [], baseNeg = [], partPos = [], partNeg = [], etiquettes = [];
+    lignes.forEach(function (l, i) {
+      var deb = l.debut || 0, fin = l.fin || 0;
+      var bp = estNombre(l.basePos) ? l.basePos : (Math.min(deb, fin) >= 0 ? Math.min(deb, fin) : 0);
+      var bn = estNombre(l.baseNeg) ? l.baseNeg : (Math.max(deb, fin) <= 0 ? Math.max(deb, fin) : 0);
+      var pp = estNombre(l.partPos) ? l.partPos : (Math.min(deb, fin) >= 0 ? Math.abs(fin - deb) : Math.max(deb, fin, 0));
+      var pn = estNombre(l.partNeg) ? l.partNeg : (Math.max(deb, fin) <= 0 ? -Math.abs(fin - deb) : Math.min(deb, fin, 0));
+      var total = i === 0 || i === dernier;
+      var couleur = total ? BLANC : (fin >= deb ? OR : GRENAT);
+      basePos.push(k(bp)); baseNeg.push(k(bn));
+      partPos.push({ value: k(pp), itemStyle: { color: couleur } });
+      partNeg.push({ value: k(pn), itemStyle: { color: couleur } });
+      var montant = total ? fin : fin - deb;
+      etiquettes.push({ value: [i, k(Math.max(deb, fin, 0))], montant: montant, total: total });
+    });
+    var invisible = { type: 'bar', stack: 'cascade', itemStyle: { color: 'transparent' }, emphasis: { disabled: true }, tooltip: { show: false }, silent: true };
+    return {
+      grid: { left: petit() ? 48 : 64, right: 16, top: 48, bottom: petit() ? 80 : 56 },
+      tooltip: { trigger: 'item', renderMode: 'richText', formatter: function (p) { var e = etiquettes[p.dataIndex]; return cat[p.dataIndex] + ' : ' + (e.total ? '' : (e.montant >= 0 ? '+ ' : '')) + formater(e.montant, 'DH'); } },
+      xAxis: { type: 'category', data: cat, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.2)' } }, axisTick: { show: false }, axisLabel: { color: OR, interval: 0, fontSize: petit() ? 10 : 12, width: petit() ? 64 : 120, overflow: 'break' } },
+      yAxis: { type: 'value', name: 'k MAD', nameTextStyle: { color: OR }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }, axisLabel: { color: 'rgba(224,174,40,0.8)', formatter: function (v) { return nombreFr(v, 0); } } },
+      series: [
+        fusion({ name: 'base positive', data: basePos }, invisible),
+        fusion({ name: 'base négative', data: baseNeg }, invisible),
+        { name: 'partie positive', type: 'bar', stack: 'cascade', barWidth: '52%', data: partPos, itemStyle: { borderRadius: 2 } },
+        { name: 'partie négative', type: 'bar', stack: 'cascade', barWidth: '52%', data: partNeg, itemStyle: { borderRadius: 2 } },
+        { name: 'montant', type: 'scatter', symbolSize: 0, silent: true, tooltip: { show: false }, data: etiquettes.map(function (e) { return e.value; }),
+          label: { show: true, position: 'top', distance: 8, fontFamily: 'Cinzel, serif', fontSize: petit() ? 11 : 14,
+            formatter: function (p) { var e = etiquettes[p.dataIndex]; return (e.total ? '' : (e.montant >= 0 ? '+ ' : '')) + formater(e.montant, 'DH'); },
+            color: BLANC } }
+      ]
+    };
+  }
+
+  /* Sankey : sources (or) → cash mobilisé (blanc) → emplois (grenat) */
+  function optionSankey(d) {
+    var f = fluxSankey(d);
+    var centre = 'Cash mobilisé en 2027';
+    var noeuds = [{ name: centre, itemStyle: { color: BLANC } }];
+    var liens = [];
+    f.entrees.forEach(function (e) { noeuds.push({ name: e.nom, itemStyle: { color: OR } }); liens.push({ source: e.nom, target: centre, value: e.v / 1000, lineStyle: { color: OR } }); });
+    f.sorties.forEach(function (s) { noeuds.push({ name: s.nom, itemStyle: { color: GRENAT } }); liens.push({ source: centre, target: s.nom, value: -s.v / 1000, lineStyle: { color: GRENAT } }); });
+    var montant = function (v) { return kmad(v * 1000) + ' k MAD'; };
+    return {
+      tooltip: { trigger: 'item', renderMode: 'richText', formatter: function (p) { return p.dataType === 'edge' ? p.data.source + ' → ' + p.data.target + ' : ' + montant(p.data.value) : p.name + ' : ' + montant(p.value); } },
+      series: [{
+        type: 'sankey', left: petit() ? 4 : 16, right: petit() ? 96 : 220, top: 16, bottom: 16,
+        nodeWidth: petit() ? 10 : 16, nodeGap: petit() ? 10 : 16, draggable: false, layoutIterations: 0,
+        emphasis: { focus: 'adjacency' },
+        data: noeuds, links: liens,
+        lineStyle: { opacity: 0.42, curveness: 0.5 },
+        label: { color: BLANC, fontFamily: 'Inter, sans-serif', fontSize: petit() ? 10 : 13, formatter: function (p) { return p.name + '\n' + montant(p.value); } },
+        edgeLabel: { show: !petit(), color: BLANC, fontFamily: 'Cinzel, serif', fontSize: 12, formatter: function (p) { return montant(p.data.value); } }
+      }]
+    };
+  }
+
+  /* Jauges : valeur 2027 face à la cible, au plafond ou au seuil */
+  function repereJauge(d, j) {
+    var n = normaliser(j.libelle);
+    if (n.indexOf('conversion') !== -1) { return d.params.CIBLE_CONV; }
+    if (n.indexOf('dette nette') !== -1) { return d.params.PLAFOND; }
+    if (n.indexOf('couverture') !== -1) { return d.params.CIBLE_DSCR; }
+    return lireNombre(String(j.repere || '').split(' ').pop());
+  }
+  function texteRepere(d, j) {
+    var mot = String(j.repere || 'repère').split(' ')[0] || 'repère';
+    return mot + ' ' + nombreFr(repereJauge(d, j), 2) + ' · maximum ' + nombreFr(j.maximum, 2);
+  }
+  function optionJauge(d, j) {
+    var max = estNombre(j.maximum) ? j.maximum : 1;
+    var valeur = estNombre(j.affichee) ? j.affichee : Math.min(Math.max(j.valeur || 0, 0), max);
+    var rep = Math.min(Math.max(repereJauge(d, j) || 0, 0), max) / max;
+    var bas = Math.max(0, rep - 0.006), haut = Math.min(1, rep + 0.006);
+    return {
+      series: [{
+        type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: max, radius: '92%', center: ['50%', '58%'],
+        progress: { show: true, width: 8, itemStyle: { color: BLANC } },
+        axisLine: { lineStyle: { width: 18, color: [[bas, 'rgba(255,255,255,0.07)'], [haut, OR], [1, 'rgba(255,255,255,0.07)']] } },
+        pointer: { show: false }, axisTick: { show: false }, splitLine: { show: false },
+        axisLabel: { show: false },
+        anchor: { show: false },
+        title: { show: true, offsetCenter: [0, '62%'], color: OR, fontSize: 13, fontFamily: 'Inter, sans-serif' },
+        detail: { valueAnimation: !reduireAnimations.matches, offsetCenter: [0, '8%'], fontFamily: 'Cinzel, serif', fontSize: 34, color: BLANC, formatter: function () { return nombreFr(j.valeur, 2); } },
+        data: [{ value: valeur, name: j.libelle }]
+      }]
+    };
+  }
+
+  /* Entonnoir : EBITDA → flux opérationnel → après loyers → après service des emprunts */
+  function optionEntonnoir(d) {
+    var lignes = d.entonnoir;
+    var max = Math.max.apply(null, lignes.map(function (l) { return l.valeur || 0; }).concat([1]));
+    var donnees = lignes.map(function (l, i) {
+      var perte = i > 0 ? (l.valeur || 0) - (lignes[i - 1].valeur || 0) : null;
+      return {
+        value: Math.max(0, l.valeur || 0) / 1000, name: l.libelle, perte: perte, brut: l.valeur,
+        itemStyle: { color: i === 0 ? BLANC : OR, borderColor: '#000', borderWidth: 2 }
+      };
+    });
+    return {
+      tooltip: { trigger: 'item', renderMode: 'richText', formatter: function (p) { return p.name + ' : ' + formater(p.data.brut, 'DH'); } },
+      series: [{
+        type: 'funnel', sort: 'none', min: 0, max: max / 1000, minSize: '12%', maxSize: '100%', gap: 4,
+        left: petit() ? '2%' : '6%', right: petit() ? '38%' : '34%', top: 16, bottom: 16,
+        data: donnees,
+        label: { show: true, position: 'inside', fontFamily: 'Cinzel, serif', fontSize: petit() ? 12 : 16, color: '#000', formatter: function (p) { return kmad(p.data.brut) + ' k'; } },
+        labelLine: { show: false }
+      }, {
+        type: 'funnel', sort: 'none', min: 0, max: max / 1000, minSize: '12%', maxSize: '100%', gap: 4,
+        left: petit() ? '2%' : '6%', right: petit() ? '38%' : '34%', top: 16, bottom: 16, silent: true, tooltip: { show: false },
+        itemStyle: { color: 'transparent', borderWidth: 0 },
+        data: donnees.map(function (x) { return { value: x.value, name: x.name, perte: x.perte }; }),
+        label: { show: true, position: 'rightTop', color: BLANC, fontSize: petit() ? 10 : 13, lineHeight: 18,
+          rich: { perte: { color: GRENAT_TEXTE, fontFamily: 'Cinzel, serif', fontSize: petit() ? 10 : 13 } },
+          formatter: function (p) { return p.name + (estNombre(p.data.perte) ? '\n{perte|' + formater(p.data.perte, 'DH') + '}' : ''); } },
+        labelLine: { show: true, length: 12, lineStyle: { color: 'rgba(255,255,255,0.3)' } }
+      }]
+    };
+  }
+
+  /* Radar : 6 axes, score 2027 face à 2026, avec la cible */
+  function optionRadar(d) {
+    var r = d.radar;
+    return {
+      legend: { bottom: 0, textStyle: { color: OR }, data: ['2027', '2026', 'Cible'], itemWidth: 18 },
+      tooltip: { trigger: 'item', renderMode: 'richText' },
+      radar: {
+        indicator: r.map(function (x) { return { name: x.libelle, max: 100 }; }),
+        radius: petit() ? '58%' : '68%', center: ['50%', '48%'],
+        axisName: { color: OR, fontSize: petit() ? 10 : 13 },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+        splitArea: { show: false },
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.12)' } }
+      },
+      series: [{
+        type: 'radar', symbolSize: 5,
+        data: [
+          { name: '2027', value: r.map(function (x) { return x.s2027; }), lineStyle: { color: BLANC, width: 2 }, itemStyle: { color: BLANC }, areaStyle: { color: 'rgba(255,255,255,0.10)' } },
+          { name: '2026', value: r.map(function (x) { return x.s2026; }), lineStyle: { color: 'rgba(255,255,255,0.45)', width: 1.5, type: 'dashed' }, itemStyle: { color: 'rgba(255,255,255,0.45)' } },
+          { name: 'Cible', value: r.map(function () { return 100; }), lineStyle: { color: OR, width: 1.25, type: 'dotted' }, itemStyle: { color: OR }, symbol: 'none' }
+        ]
+      }]
+    };
+  }
+
+  /* Bullet chart : délais face à leur seuil vert */
+  function optionBullet(d) {
+    var b = d.bullet;
+    var noms = b.map(function (x) { return 'Délai ' + x.libelle; });
+    var max = Math.max.apply(null, b.map(function (x) { return Math.max(x.valeur || 0, x.seuil || 0); })) * 1.25;
+    return {
+      grid: { left: petit() ? 96 : 140, right: 32, top: 24, bottom: 48 },
+      tooltip: { trigger: 'item', renderMode: 'richText' },
+      xAxis: { type: 'value', max: Math.ceil(max / 10) * 10, name: 'jours', nameLocation: 'middle', nameGap: 28, nameTextStyle: { color: OR }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }, axisLabel: { color: 'rgba(224,174,40,0.8)' } },
+      yAxis: { type: 'category', data: noms, inverse: true, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: OR, fontSize: petit() ? 11 : 13 } },
+      series: [
+        { name: 'Fond', type: 'bar', data: noms.map(function () { return Math.ceil(max / 10) * 10; }), barWidth: 26, barGap: '-100%', itemStyle: { color: 'rgba(255,255,255,0.05)' }, silent: true, tooltip: { show: false } },
+        { name: 'Valeur 2027', type: 'bar', data: b.map(function (x) { return x.valeur; }), barWidth: 12, itemStyle: { color: BLANC, borderRadius: 2 },
+          label: { show: true, position: 'right', color: BLANC, fontFamily: 'Cinzel, serif', formatter: function (p) { return nombreFr(p.value, 1) + ' j'; } },
+          tooltip: { formatter: function (p) { return p.name + ' : ' + nombreFr(p.value, 1) + ' jours'; } } },
+        { name: 'Seuil vert', type: 'scatter', symbol: 'rect', symbolSize: [3, 30], itemStyle: { color: OR }, data: b.map(function (x, i) { return [x.seuil, i]; }),
+          label: { show: true, position: 'top', color: OR, fontSize: 11, formatter: function (p) { return 'seuil vert ' + nombreFr(p.value[0], 0); } },
+          tooltip: { formatter: function (p) { return 'Seuil vert : ' + nombreFr(p.value[0], 0) + ' jours'; } } }
+      ]
+    };
+  }
+
+  /* =====================================================================
+     FOND ANIMÉ · particules reliées en reflets noirs brillants
+     ===================================================================== */
+  function demarrerFond() {
+    var toile = document.getElementById('fond-particules');
+    var ctx = toile.getContext && toile.getContext('2d');
+    if (!ctx) { return; }
+    var particules = [], largeur = 0, hauteur = 0, rafId = null;
+    function dimensionner() {
+      var ratio = Math.min(window.devicePixelRatio || 1, 2);
+      largeur = window.innerWidth; hauteur = window.innerHeight;
+      toile.width = largeur * ratio; toile.height = hauteur * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      var n = Math.round(Math.min(70, largeur * hauteur / 22000));
+      particules = [];
+      for (var i = 0; i < n; i++) {
+        particules.push({ x: Math.random() * largeur, y: Math.random() * hauteur, vx: (Math.random() - 0.5) * 0.12, vy: (Math.random() - 0.5) * 0.12, r: 1.5 + Math.random() * 2.5 });
+      }
+    }
+    function dessiner() {
+      ctx.clearRect(0, 0, largeur, hauteur);
+      for (var i = 0; i < particules.length; i++) {
+        var p = particules[i];
+        for (var j = i + 1; j < particules.length; j++) {
+          var q = particules[j], dx = p.x - q.x, dy = p.y - q.y, dist = dx * dx + dy * dy;
+          if (dist < 26000) {
+            ctx.strokeStyle = 'rgba(255,255,255,' + (0.05 * (1 - dist / 26000)).toFixed(3) + ')';
+            ctx.lineWidth = 0.6;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+          }
+        }
+      }
+      particules.forEach(function (p) {
+        var g = ctx.createRadialGradient(p.x - p.r * 0.35, p.y - p.r * 0.35, 0, p.x, p.y, p.r * 2.2);
+        g.addColorStop(0, 'rgba(255,255,255,0.22)');
+        g.addColorStop(0.35, 'rgba(40,40,40,0.55)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+    function animer() {
+      particules.forEach(function (p) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < -10) { p.x = largeur + 10; } if (p.x > largeur + 10) { p.x = -10; }
+        if (p.y < -10) { p.y = hauteur + 10; } if (p.y > hauteur + 10) { p.y = -10; }
+      });
+      dessiner();
+      rafId = requestAnimationFrame(animer);
+    }
+    function piloter() {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      dimensionner();
+      /* Version fixe sur téléphone et si « réduire les animations » est activé */
+      if (reduireAnimations.matches || ecranMobile.matches || document.hidden) { dessiner(); }
+      else { animer(); }
+    }
+    var attenteRedim = null;
+    window.addEventListener('resize', function () { clearTimeout(attenteRedim); attenteRedim = setTimeout(piloter, 200); });
+    document.addEventListener('visibilitychange', piloter);
+    if (reduireAnimations.addEventListener) { reduireAnimations.addEventListener('change', piloter); ecranMobile.addEventListener('change', piloter); }
+    piloter();
+  }
+
+  /* =====================================================================
+     DÉMARRAGE
+     ===================================================================== */
+  function brancherEvenements() {
+    window.addEventListener('hashchange', function () { fermerVolet(); rendre({ navigation: true }); });
+    document.getElementById('entree-fichier').addEventListener('change', function (e) { importerFichier(e.target.files && e.target.files[0]); });
+    document.getElementById('voile').addEventListener('click', fermerVolet);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !document.getElementById('volet').hidden) { fermerVolet(); } });
+    /* Onglet revenu au premier plan : vérification immédiate */
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && etat.syncActive) { verifier().then(planifier); } });
+    window.addEventListener('focus', function () { if (etat.syncActive && etat.mode === 'A') { verifier(); } });
+    /* Glisser-déposer : connecté en direct si le navigateur le permet */
+    var compteur = 0;
+    var zone = document.getElementById('zone-depot');
+    document.addEventListener('dragenter', function (e) { if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') !== -1) { compteur++; zone.hidden = false; } });
+    document.addEventListener('dragleave', function () { compteur = Math.max(0, compteur - 1); if (!compteur) { zone.hidden = true; } });
+    document.addEventListener('dragover', function (e) { e.preventDefault(); });
+    document.addEventListener('drop', function (e) {
+      e.preventDefault();
+      compteur = 0; zone.hidden = true;
+      var items = e.dataTransfer && e.dataTransfer.items;
+      var item = items && items.length ? items[0] : null;
+      if (item && item.kind === 'file' && accesDirectPossible && typeof item.getAsFileSystemHandle === 'function') {
+        var fichierSecours = item.getAsFile();
+        item.getAsFileSystemHandle().then(function (p) {
+          if (p && p.kind === 'file') { utiliserPoignee(p); } else { importerFichier(fichierSecours); }
+        }, function () { importerFichier(fichierSecours); });
+        return;
+      }
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      importerFichier(f);
+    });
+    /* Aucune erreur technique dans la console ni à l'écran */
+    window.addEventListener('unhandledrejection', function (e) { e.preventDefault(); });
+    window.addEventListener('error', function (e) { if (e && e.preventDefault) { e.preventDefault(); } });
+  }
+
+  function demarrer() {
+    etat.syncActive = lirePreference();
+    brancherEvenements();
+    demarrerFond();
+    if (typeof XLSX === 'undefined' || typeof echarts === 'undefined') {
+      etat.chargementInitial = false;
+      etat.erreurInitiale = { titre: 'Les bibliothèques de lecture et de graphiques n’ont pas pu être chargées. Vérifiez votre connexion Internet, puis cliquez sur « Réessayer ».', details: [] };
+      changerStatut('erreur', 'Bibliothèques indisponibles.');
+      rendre();
+      document.querySelector('#vue .bouton-principal').addEventListener('click', function () { window.location.reload(); });
+      return;
+    }
+    rendre();
+    /* 1. Reconnecter le fichier déjà connecté (poignée gardée dans IndexedDB) */
+    var etapePoignee = accesDirectPossible ? idb('lire') : Promise.resolve(null);
+    etapePoignee.then(function (p) {
+      if (p && typeof p.queryPermission === 'function') {
+        etat.poignee = p;
+        etat.nomFichier = p.name;
+        return p.queryPermission({ mode: 'read' }).then(function (perm) {
+          if (perm === 'granted') { etat.mode = 'A'; return true; }
+          etat.mode = 'A';
+          changerStatut('reconnexion', 'Cliquez sur « Reconnecter » pour reprendre le suivi de ' + p.name + '.');
+          return false;
+        }, function () { return false; });
+      }
+      return false;
+    }).then(function (directPret) {
+      if (directPret) { return forcerVerificationDemarrage(); }
+      /* 2. Sinon, donnees.xlsx à côté d'index.html (en ligne et en localhost) */
+      if (enHttp) {
+        var avait = etat.mode;
+        etat.mode = 'B';
+        return verifierModeB().then(function () { planifier(); if (avait === 'A' && etat.poignee) { changerStatut('reconnexion', 'Données lues depuis donnees.xlsx. Cliquez sur « Reconnecter » pour reprendre le suivi direct de ' + etat.poignee.name + '.'); } },
+          function (e) {
+            if (e && e.absent) { etat.mode = avait === 'A' ? 'A' : null; return afficherVideOuErreur(); }
+            /* donnees.xlsx existe mais il est invalide : l'erreur est affichée et le suivi continue */
+            etat.chargementInitial = false;
+            traiterErreur(e);
+            planifier();
+          });
+      }
+      return afficherVideOuErreur();
+    }).catch(function () { afficherVideOuErreur(); });
+  }
+  function forcerVerificationDemarrage() {
+    changerStatut('lecture');
+    return verifier().then(function () {
+      if (!etat.donnees && !etat.erreurInitiale) { etat.chargementInitial = false; rendre(); }
+      planifier();
+    });
+  }
+  function afficherVideOuErreur() {
+    etat.chargementInitial = false;
+    if (!etat.donnees) {
+      if (etat.statut !== 'reconnexion') { changerStatut('aucun'); }
+      etat.erreurInitiale = null;
+      rendre();
+    }
+  }
+
+  demarrer();
+})();
+
+</script>
+</body>
+</html>
